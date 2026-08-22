@@ -37,10 +37,13 @@ jobs:
         run: python src/main.py
 
       - name: Keep-alive webhook (Render free tier)
-        if: ${{ secrets.WEBHOOK_URL != '' }}
         run: |
-          echo "Pinging webhook health..."
-          curl -fsS "${{ secrets.WEBHOOK_URL }}/health" || echo "keep-alive failed (webhook may be starting)"
+          if [ -n "${{ secrets.WEBHOOK_URL }}" ]; then
+            echo "Pinging webhook health..."
+            curl -fsS "${{ secrets.WEBHOOK_URL }}/health" || echo "keep-alive failed (webhook may be starting)"
+          else
+            echo "No WEBHOOK_URL secret — skipping keep-alive"
+          fi
 
       - name: Commit state and dashboard
         run: |

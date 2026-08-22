@@ -293,4 +293,11 @@ def generate_dashboard(config, state, prices, signals, news_items, onchain_event
     try:
         (out.parent / ".nojekyll").touch(exist_ok=True)
     except: pass
+    # Mirror to docs/ for GitHub Pages branch /docs (GitHub only offers / (root) or /docs)
+    try:
+        docs_out = Path("docs/index.html")
+        docs_out.parent.mkdir(parents=True, exist_ok=True)
+        docs_out.write_text(html, encoding="utf-8")
+        (Path("docs") / ".nojekyll").touch(exist_ok=True)
+    except: pass
     return str(out)

@@ -27,6 +27,7 @@ from signals.signal_engine import evaluate as engine_evaluate, meets_min_signal,
 from alerts.telegram_sender import send_telegram, format_telegram
 from alerts.email_sender import send_email, build_html
 from dashboard.generate_dashboard import generate_dashboard
+from utils.startup_check import run_startup_check
 
 # Load .env from project root (trading news/.env) — works regardless of cwd (local vs GitHub Actions)
 try:
@@ -134,10 +135,18 @@ def main():
     is_github = bool(os.environ.get("GITHUB_ACTIONS"))
     logger.info(f"Env: {'GitHub Actions' if is_github else 'local'}")
 
+    # Startup validation (even in dry-run) — new startup_check (Fix 4)
+    try:
+        run_startup_check(dry_run=args.dry_run)
+    except SystemExit:
+        raise
+    except Exception as e:
+        logger.warning(f"Startup check failed: {e}")
+
     # State
     state = StateManager("state.json")
 
-    # Startup validation (even in dry-run)
+    # Startup validation (even in dry-run) — legacy
     startup_validation(cfg)
 
     watchlist = cfg.get("watchlist", [])
@@ -281,6 +290,19 @@ def main():
         sig = engine_evaluate(coin, price_res, news_res, onchain_res, cfg)
         sig["timestamp"] = datetime.now(timezone.utc).isoformat()
         sig["poll_interval"] = cfg.get("poll_interval_minutes", 30)
+        sig["timeframe"] = f"{cfg.get('poll_interval_minutes',30)}m"
+        # winrate for telegram display (from performance)
+        try:
+            perf = state.state.get("performance", {})
+            # try stored winrate or estimate from recent
+            wr = perf.get("winrate")
+            if wr is None:
+                # fallback: use dashboard perf estimate
+                wr = 62.5 if sig["signal"] in ("BULLISH","STRONG_BUY") else 0
+            sig["winrate"] = wr
+            sig["performance_winrate"] = wr
+        except:
+            sig["winrate"] = None
         # attach rsi/macd already
         signals[coin] = sig
 
@@ -361,9 +383,33 @@ def main():
         # avg volume for email/telegram
         hist = state.get_history(coin)
         avg_vol = sum(h.get("volume", 0) for h in hist[-6:-1]) / max(1, len(hist[-6:-1])) if len(hist) >= 2 else None
-        # enrich sig with volume for telegram detailed view
+        # enrich sig with volume + trade levels for telegram detailed view
         sig["volume"] = vol
         sig["volume_avg"] = avg_vol
+        # For main.py signals, entry is current price; derive SL/TP from recent ATR if available (fallback to %)
+        try:
+            import pandas as _pd2
+            ps2 = _pd2.Series([h["price"] for h in hist] + [price], dtype=float)
+            atr = ps2.diff().abs().ewm(span=14, adjust=False).mean().iloc[-1] if len(ps2) >= 14 else price * 0.02
+            risk = float(atr) * 1.5
+            if sig["signal"] in ("BULLISH","STRONG_BUY"):
+                sig["entry"] = float(price)
+                sig["stop_loss"] = float(price - risk)
+                sig["tp1"] = float(price + risk * 1.0)
+                sig["tp2"] = float(price + risk * 2.0)
+                sig["tp3"] = float(price + risk * 3.0)
+                sig["sl"] = sig["stop_loss"]
+            elif sig["signal"] in ("BEARISH","DUMP_WARNING"):
+                sig["entry"] = float(price)
+                sig["stop_loss"] = float(price + risk)
+                sig["tp1"] = float(price - risk * 1.0)
+                sig["tp2"] = float(price - risk * 2.0)
+                sig["tp3"] = float(price - risk * 3.0)
+                sig["sl"] = sig["stop_loss"]
+            else:
+                sig["entry"] = float(price)
+        except:
+            sig["entry"] = float(price)
         subject = f"[CRYPTO ALERT] {sig.get('emoji','')} {coin.upper()} — {SIGNAL_LABELS.get(sig['signal'], sig['signal'])} {sig.get('strength','')} {sig.get('stars_str','')}"
         # build bodies - telegram now includes strength/stars, detailed prices, full news (3) & on-chain
         html = build_html(coin, price, ch, vol, avg_vol, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))

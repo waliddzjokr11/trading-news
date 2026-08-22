@@ -126,7 +126,7 @@ def tradingview_webhook():
         gmail_pass = os.environ.get("GMAIL_APP_PASSWORD")
         email_to = os.environ.get("ALERT_EMAIL_TO")
 
-        # Use telegram_sender format but adapt for TV: create signal_info with full strength/news
+        # Use telegram_sender format but adapt for TV: create signal_info with full strength/news + trade levels
         signal_info = {
             "emoji": {"DUMP_WARNING":"🔴","BEARISH":"🟠","NEUTRAL":"🟡","BULLISH":"🟢","STRONG_BUY":"🚀"}.get(combined["signal_label"],"⚪"),
             "signal": combined["signal_label"],
@@ -137,6 +137,8 @@ def tradingview_webhook():
             "weights": combined["weights"],
             "timestamp": data.get("timestamp") or datetime.now(timezone.utc).isoformat(),
             "poll_interval": cfg.get("poll_interval_minutes",30),
+            "timeframe": data.get("timeframe"),
+            "winrate": data.get("winrate"),
             "details": {"price": [f"TV {data.get('signal')} {data.get('quality_stars')}★ MTF {data.get('mtf_score','')} WR {data.get('winrate','')}%"]},
             "top_news": combined.get("news_top", []),
             "onchain_events": combined.get("onchain_events", []),
@@ -147,6 +149,12 @@ def tradingview_webhook():
             "price_score": combined.get("tv_score", 0),
             "news_score": combined.get("news_score", 0),
             "onchain_score": combined.get("onchain_score", 0),
+            "entry": data.get("price"),
+            "stop_loss": data.get("stop_loss"),
+            "tp1": data.get("tp1"),
+            "tp2": data.get("tp2"),
+            "tp3": data.get("tp3"),
+            "sl": data.get("stop_loss"),
         }
         price = float(data.get("price") or 0)
         # change_24h not in TV payload, use 0

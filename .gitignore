@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+.env
+logs/*.log
+!logs/.gitkeep
+# state.json is COMMITTED for GitHub Actions persistence — do not ignore
+.DS_Store

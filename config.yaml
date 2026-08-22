@@ -1,0 +1,180 @@
+# ============================================================
+# CRYPTO ALERT SYSTEM — USER CONFIGURATION
+# Algeria (Oran) — Africa/Algiers — Private repo default 30m
+# ============================================================
+
+# 100-coin watchlist: mostly-halal, top Binance volume + trading niche
+# All are CoinGecko IDs. Maps 1:1 to Binance USDT pairs in comment.
+# Edit freely — no code change needed. Comment out any coin to disable.
+# * = borderline halal (staking/yield/biometrics) — remove 1 line if strict
+watchlist:
+  # --- Majors / L1 core (halal-screened) ---
+  - bitcoin              # BTC
+  - ethereum             # ETH* (staking interest — remove if strict)
+  - binancecoin          # BNB - you requested
+  - ripple               # XRP - you requested
+  - solana               # SOL* (staking)
+  - tron                 # TRX - you requested
+  - cardano              # ADA
+  - avalanche-2          # AVAX
+  - toncoin              # TON
+  - chainlink            # LINK
+  # --- L1/L0 infra ---
+  - polkadot             # DOT
+  - cosmos               # ATOM - you requested
+  - near                 # NEAR - you requested
+  - internet-computer    # ICP
+  - hedera-hashgraph     # HBAR
+  - aptos                # APT
+  - sui                  # SUI
+  - sei-network          # SEI
+  - celestia             # TIA
+  - kaspa                # KAS
+  # --- L2 / Scaling ---
+  - optimism             # OP - you requested
+  - arbitrum             # ARB
+  - starknet             # STRK
+  - mantle               # MNT
+  - immutable            # IMX
+  - manta-network        # MANTA
+  - altlayer             # ALT
+  - polygon-ecosystem-token # POL (ex-MATIC)
+  - ethereum-classic     # ETC
+  - litecoin             # LTC
+  # --- Legacy / High-vol ---
+  - bitcoin-cash         # BCH
+  - stellar              # XLM
+  - vechain              # VET
+  - algorand             # ALGO
+  - eos                  # EOS
+  - tezos                # XTZ
+  - neo                  # NEO
+  - iota                 # IOTA
+  - kava                 # KAVA
+  - multiversx           # EGLD
+  # --- Interop / Data ---
+  - thorchain            # RUNE
+  - fantom               # FTM
+  - crypto-com-chain     # CRO — CoinGecko id crypto-com-chain (Cronos)
+  - flow                 # FLOW
+  - axelar               # AXL
+  - band-protocol        # BAND
+  - api3                 # API3
+  - uma                  # UMA
+  - skale                # SKL
+  - cartesi              # CTSI
+  # --- AI / DePIN / Compute (includes TAO) ---
+  - bittensor            # TAO - you requested
+  - render-token         # RNDR
+  - fetch-ai             # FET
+  - singularitynet       # AGIX
+  - ocean-protocol       # OCEAN
+  - filecoin             # FIL
+  - arweave              # AR
+  - the-graph            # GRT
+  - akash-network        # AKT
+  - helium               # HNT
+  # --- Trading niche / Momentum ---
+  - jasmycoin            # JASMY
+  - worldcoin-wld        # WLD* (biometrics — remove if strict) — CoinGecko id worldcoin-wld
+  - arkham               # ARKM
+  - jupiter              # JUP
+  - jito-governance-token # JTO — CoinGecko id jito-governance-token
+  - pyth-network         # PYTH
+  - wormhole             # W
+  - layerzero            # ZRO
+  - eigenlayer           # EIGEN
+  - ethena               # ENA* (yield — flagged, remove if strict)
+  # --- Gaming / Metaverse / Alt (volume) ---
+  - chiliz               # CHZ
+  - gala                 # GALA
+  - the-sandbox          # SAND — CoinGecko id the-sandbox
+  - axie-infinity        # AXS
+  - enjincoin            # ENJ
+  - decentraland         # MANA
+  - apecoin              # APE
+  - blur                 # BLUR
+  - beam                 # BEAM
+  - dydx                 # DYDX
+  # --- Extra high-vol fillers (all Binance spot-listed) ---
+  - lisk                 # LSK
+  - waves                # WAVES — CoinGecko id waves
+  - zilliqa              # ZIL
+  - harmony              # ONE
+  - qtum                 # QTUM
+  - theta-token          # THETA
+  - injective-protocol   # INJ — high-volume trading niche
+  - uniswap              # UNI — DEX (halal, high vol)
+  - curve-dao-token      # CRV
+  - 1inch                # 1INCH
+  - mina-protocol        # MINA
+  - celo                 # CELO
+  - oasis-network        # ROSE
+  - notcoin              # NOT — high vol trading
+  - moonbeam             # GLMR
+  - astar                # ASTR
+  - dogecoin             # DOGE* (meme — flagged, remove if strict halal)
+  - ondo-finance         # ONDO* (RWA yield — flagged)
+  - pendle               # PENDLE* (yield — flagged, comment out if strict)
+  - ether-fi             # ETHFI* (restaking)
+  # --- Add HOME here when you confirm ticker ---
+  # - home               # HOME — uncomment after you provide CoinGecko ID
+
+# How often to check (minutes). GitHub Actions minimum is 5.
+# Private repo limit: 2000 min/mo → 30m = ~1440 runs (safe). Public = 15m OK.
+poll_interval_minutes: 30
+
+# ── PRICE SIGNAL THRESHOLDS ─────────────────────────────────
+price:
+  short_window_minutes: 15       # window for short-term % change
+  short_change_pct: 3.0          # trigger if price moves ±3% in window
+  medium_window_minutes: 60      # window for medium-term % change
+  medium_change_pct: 6.0         # trigger if price moves ±6% in 1 hour
+  volume_multiplier: 2.5         # trigger if volume is 2.5x rolling average
+  rsi_oversold: 30               # RSI below this = oversold (bullish)
+  rsi_overbought: 70             # RSI above this = overbought (bearish)
+  rsi_period: 14
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+
+# ── SIGNAL WEIGHTS (must sum to 1.0) ────────────────────────
+weights:
+  price: 0.40
+  news: 0.35
+  onchain: 0.25
+
+# ── NEWS SETTINGS ────────────────────────────────────────────
+news:
+  max_age_hours: 4               # ignore news older than this
+  min_sources_to_boost: 2        # boost score if story confirmed by N sources
+  dedup_ttl_hours: 24            # how long to remember seen headlines
+
+# Custom keyword overrides (adds to built-in list)
+keywords:
+  bearish_critical_extra: []     # e.g. ["founder arrested", "rug pull"]
+  bullish_critical_extra: []     # e.g. ["BlackRock", "Fidelity"]
+
+# ── ALERT SETTINGS ───────────────────────────────────────────
+alerts:
+  email_enabled: true
+  telegram_enabled: true
+  cooldown_minutes: 60
+  daily_digest_time: "08:00"     # 24h format, your local timezone
+  timezone: "Africa/Algiers"     # Oran
+  min_signal_to_alert: "BEARISH" # minimum signal level to send alert
+                                 # options: DUMP_WARNING, BEARISH, NEUTRAL, BULLISH, STRONG_BUY
+  max_alerts_per_run: 20         # cap to avoid spam on 100 coins
+
+# ── DATA SOURCE SETTINGS ─────────────────────────────────────
+sources:
+  price_primary: "coingecko"     # coingecko | binance | coincap — fallback auto
+  news_rss_enabled: true
+  onchain_enabled: true
+  price_chunk_size: 50           # split 100 coins into chunks of 50 for URL safety
+
+# ── LOGGING ──────────────────────────────────────────────────
+logging:
+  level: "INFO"                  # DEBUG | INFO | WARNING | ERROR
+  save_to_file: true
+  log_file: "logs/monitor.log"

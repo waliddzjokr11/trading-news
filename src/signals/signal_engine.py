@@ -97,6 +97,24 @@ def evaluate(coin_id, price_result, news_result, onchain_result, config):
     # scale to -5..5 then map; but composite already weighted sum of -5..5 -> -5..5
     # To match spec mapping where thresholds are at ±1.5, ±4, we keep as is
     label = composite_label(composite)
+    # Strength / stars for Telegram (how strong is it)
+    ab = abs(composite)
+    if ab >= 4:
+        stars = 5
+        strength = "VERY STRONG"
+    elif ab >= 3:
+        stars = 4
+        strength = "STRONG"
+    elif ab >= 1.5:
+        stars = 3
+        strength = "MODERATE"
+    elif ab >= 0.7:
+        stars = 2
+        strength = "WEAK"
+    else:
+        stars = 1
+        strength = "VERY WEAK"
+    stars_str = "★" * stars + "☆" * (5 - stars)
 
     return {
         "coin": coin_id,
@@ -108,6 +126,9 @@ def evaluate(coin_id, price_result, news_result, onchain_result, config):
         "signal": label,
         "color": COLOR.get(label, "#888"),
         "emoji": EMOJI.get(label, "⚪"),
+        "strength": strength,
+        "stars": stars,
+        "stars_str": stars_str,
         "details": {
             "price": price_result.get("details", []),
             "news": news_result.get("details", []),

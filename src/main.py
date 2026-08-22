@@ -318,11 +318,14 @@ def main():
         price = pdata.get("price", 0)
         ch = pdata.get("change_24h", 0)
         vol = pdata.get("volume", 0)
-        # avg volume for email
+        # avg volume for email/telegram
         hist = state.get_history(coin)
         avg_vol = sum(h.get("volume", 0) for h in hist[-6:-1]) / max(1, len(hist[-6:-1])) if len(hist) >= 2 else None
-        subject = f"[CRYPTO ALERT] {sig.get('emoji','')} {coin.upper()} — {SIGNAL_LABELS.get(sig['signal'], sig['signal'])}"
-        # build bodies
+        # enrich sig with volume for telegram detailed view
+        sig["volume"] = vol
+        sig["volume_avg"] = avg_vol
+        subject = f"[CRYPTO ALERT] {sig.get('emoji','')} {coin.upper()} — {SIGNAL_LABELS.get(sig['signal'], sig['signal'])} {sig.get('strength','')} {sig.get('stars_str','')}"
+        # build bodies - telegram now includes strength/stars, detailed prices, full news (3) & on-chain
         html = build_html(coin, price, ch, vol, avg_vol, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
         tg_msg = format_telegram(coin, price, ch, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
         # also log disclaimer

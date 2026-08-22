@@ -142,6 +142,24 @@ def compute_tv_combined_score(tv_signal: dict, coin_id: str, config, state_manag
 
     composite = tv_score * w_tv + news_score * w_news + onchain_score * w_oc
     label = composite_label(composite)
+    # strength for telegram
+    ab = abs(composite)
+    if ab >= 4:
+        c_stars = 5
+        c_strength = "VERY STRONG"
+    elif ab >= 3:
+        c_stars = 4
+        c_strength = "STRONG"
+    elif ab >= 1.5:
+        c_stars = 3
+        c_strength = "MODERATE"
+    elif ab >= 0.7:
+        c_stars = 2
+        c_strength = "WEAK"
+    else:
+        c_stars = 1
+        c_strength = "VERY WEAK"
+    c_stars_str = "★" * c_stars + "☆" * (5 - c_stars)
 
     return {
         "composite_score": float(round(composite, 2)),
@@ -156,6 +174,9 @@ def compute_tv_combined_score(tv_signal: dict, coin_id: str, config, state_manag
         "coin_id": coin_id,
         "direction": direction,
         "weights": {"tv": w_tv, "news": w_news, "onchain": w_oc},
+        "c_stars": c_stars,
+        "c_stars_str": c_stars_str,
+        "c_strength": c_strength,
     }
 
 

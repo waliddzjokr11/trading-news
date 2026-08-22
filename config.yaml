@@ -159,12 +159,12 @@ keywords:
 alerts:
   email_enabled: false
   telegram_enabled: true
-  cooldown_minutes: 60
+  cooldown_minutes: 15           # short cooldown so you get every run (user wants all signals)
   daily_digest_time: "08:00"     # 24h format, your local timezone
   timezone: "Africa/Algiers"     # Oran
-  min_signal_to_alert: "BEARISH" # minimum signal level to send alert
+  min_signal_to_alert: "NEUTRAL" # send ALL signals (DUMP/BEARISH/NEUTRAL/BULLISH/STRONG_BUY) with strength+news
                                  # options: DUMP_WARNING, BEARISH, NEUTRAL, BULLISH, STRONG_BUY
-  max_alerts_per_run: 20         # cap to avoid spam on 100 coins
+  max_alerts_per_run: 100        # 100 coins → send all (user requested)
 
 # ── DATA SOURCE SETTINGS ─────────────────────────────────────
 sources:
@@ -177,7 +177,7 @@ sources:
 tradingview:
   webhook_enabled: true
   webhook_port: 5000
-  min_quality_stars: 3        # ignore TV signals below this quality
+  min_quality_stars: 1        # send all TV signals (1★+) — user wants every signal with strength
   tv_signal_weight: 0.50      # TV signal weight in combined score
   news_weight_tv: 0.30        # news weight when TV signal present
   onchain_weight_tv: 0.20     # onchain weight when TV signal present

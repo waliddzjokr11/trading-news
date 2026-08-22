@@ -157,7 +157,7 @@ keywords:
 
 # ── ALERT SETTINGS ───────────────────────────────────────────
 alerts:
-  email_enabled: true
+  email_enabled: false
   telegram_enabled: true
   cooldown_minutes: 60
   daily_digest_time: "08:00"     # 24h format, your local timezone

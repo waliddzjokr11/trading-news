@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: crypto-alert-webhook
+    env: python
+    region: frankfurt # closest to Algeria; change as needed
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT src.webhook_server:app
+    healthCheckPath: /health
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: ALERT_EMAIL_TO
+        sync: false
+      - key: WEBHOOK_SECRET
+        sync: false
+      - key: PYTHON_VERSION
+        value: 3.11.0

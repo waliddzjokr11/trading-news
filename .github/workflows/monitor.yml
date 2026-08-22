@@ -33,7 +33,14 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           CRYPTOPANIC_API_KEY: ${{ secrets.CRYPTOPANIC_API_KEY }}
+          WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
         run: python src/main.py
+
+      - name: Keep-alive webhook (Render free tier)
+        if: ${{ secrets.WEBHOOK_URL != '' }}
+        run: |
+          echo "Pinging webhook health..."
+          curl -fsS "${{ secrets.WEBHOOK_URL }}/health" || echo "keep-alive failed (webhook may be starting)"
 
       - name: Commit state and dashboard
         run: |

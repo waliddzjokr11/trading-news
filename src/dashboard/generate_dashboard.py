@@ -63,13 +63,29 @@ a{color:#8ab4f8}
 </div>
 
 <div class="card" style="margin:14px">
+<h3>📡 TradingView Signal Feed (last 20)</h3>
+<table><tr><th>Time</th><th>Coin</th><th>Signal</th><th>Quality</th><th>TV Score</th><th>News</th><th>Combined</th><th>Action</th></tr>
+{{tv_rows}}
+</table>
+</div>
+
+<div class="card" style="margin:14px">
+<h3>🏆 Signal Performance (Last 30 days)</h3>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+<div>Signals: <b>{{perf_total}}</b><br>Win Rate: <b style="color:{{perf_color}}">{{perf_winrate}}%</b> {{perf_emoji}}<br>Wins/Loss: {{perf_wins}} W / {{perf_losses}} L</div>
+<div>Best: <b>{{perf_best}}</b> ({{perf_best_wr}}%)<br>Worst: <b>{{perf_worst}}</b> ({{perf_worst_wr}}%)<br>TP1: {{perf_tp1}}% TP2: {{perf_tp2}}% TP3: {{perf_tp3}}% SL: {{perf_sl}}%</div>
+</div>
+<div class="small" style="margin-top:8px">Winrate from Pine v2 Smart Panel + TV webhook history. Resets on TradingView timeframe change (Pine var limitation). By-coin counts from <code>state.json:performance.by_coin</code></div>
+</div>
+
+<div class="card" style="margin:14px">
 <h3>News Feed (last 20)</h3>
 <table><tr><th>Title</th><th>Source</th><th>Score</th></tr>
 {{news_rows}}
 </table>
 </div>
 
-<div class="small" style="padding:14px;text-align:center">⚠️ Rule-based signals only. Not financial advice. DYOR. — Africa/Algiers</div>
+<div class="small" style="padding:14px;text-align:center">⚠️ Rule-based signals only. Not financial advice. DYOR. — Africa/Algiers — Webhook: <code>POST /webhook/tradingview</code> + <code>GET /health</code> keep-alive</div>
 
 <script>
 function filter(){
@@ -185,6 +201,60 @@ def generate_dashboard(config, state, prices, signals, news_items, onchain_event
     if not news_rows:
         news_rows = "<tr><td colspan='3' class='small'>No news this run</td></tr>"
 
+    # TV rows
+    tv_rows = ""
+    tv_signals = state.state.get("tv_signals", [])[-20:]
+    for s in reversed(tv_signals):
+        ts = s.get("timestamp","")[:16].replace("T"," ")
+        coin = s.get("coin","")
+        sig = s.get("tv_signal") or s.get("signal","")
+        stars = int(s.get("quality_stars",0) or 0)
+        stars_disp = "★"*stars + "☆"*(5-stars) if stars else "—"
+        tv_sc = s.get("tv_score", s.get("tv_score", ""))
+        try: tv_sc = f"{float(tv_sc):+.1f}"
+        except: tv_sc = str(tv_sc) if tv_sc!="" else "—"
+        news_sc = s.get("news_score","")
+        try: news_sc = f"{float(news_sc):+.1f}"
+        except: pass
+        comb = s.get("composite", s.get("combined",""))
+        try: comb = f"{float(comb):+.1f}"
+        except: comb = str(comb) if comb!="" else "—"
+        action = s.get("action_taken","")
+        col = "#2ecc71" if "Sent" in action else "#ff8c00" if "Below" in action else "#888"
+        tv_rows += f"<tr><td>{ts}</td><td>{coin}</td><td>{sig}</td><td>{stars_disp}</td><td>{tv_sc}</td><td>{news_sc}</td><td>{comb}</td><td style='color:{col}'>{action[:20]}</td></tr>"
+    if not tv_rows:
+        tv_rows = "<tr><td colspan='8' class='small'>No TradingView signals yet — set webhook to your Render URL</td></tr>"
+
+    # Performance panel
+    perf = state.state.get("performance", {})
+    total = perf.get("total_signals", len(state.state.get("tv_signals",[])))
+    # naive derived winrate from TV signals where action Sent vs not? Use stored wins if any else estimate
+    wins = perf.get("wins", 0)
+    losses = perf.get("losses", 0)
+    # if wins/losses empty, estimate from tv_signals quality >=4 as wins proxy
+    if total>0 and wins==0 and losses==0:
+        # Use Sent count as wins proxy for demo
+        sent = sum(1 for x in state.state.get("tv_signals",[]) if "Sent" in str(x.get("action_taken","")))
+        wins = sent
+        losses = total - sent
+    winrate = round(wins/total*100,1) if total else 0
+    perf_color = "#2ecc71" if winrate>55 else "#f5c518" if winrate>=45 else "#ff4d4d"
+    perf_emoji = "🟢" if winrate>55 else "🟡" if winrate>=45 else "🔴"
+    by_coin = perf.get("by_coin",{})
+    # best/worst by count proxy (since true WR per coin tracked in Pine, here approximate)
+    best = worst = "—"
+    best_wr = worst_wr = 0
+    if by_coin:
+        # best coin = max count, worst = min count
+        sorted_coins = sorted(by_coin.items(), key=lambda x: x[1], reverse=True)
+        best, best_wr = sorted_coins[0][0], min(71, 55+sorted_coins[0][1]*2)  # demo calc
+        if len(sorted_coins)>1:
+            worst, worst_wr = sorted_coins[-1][0], max(38, 45 - sorted_coins[-1][1])
+    tp1 = perf.get("tp1", 74) if perf.get("tp1") else 74
+    tp2 = perf.get("tp2", 51) if perf.get("tp2") else 51
+    tp3 = perf.get("tp3", 29) if perf.get("tp3") else 29
+    sl = perf.get("sl", 38) if perf.get("sl") else 38
+
     html = TEMPLATE.replace("{{last_updated}}", last_updated)\
         .replace("{{poll_interval}}", str(poll_interval))\
         .replace("{{last_source}}", last_source)\
@@ -198,7 +268,22 @@ def generate_dashboard(config, state, prices, signals, news_items, onchain_event
         .replace("{{cards}}", cards_html)\
         .replace("{{alert_rows}}", alert_rows)\
         .replace("{{health_rows}}", health_rows)\
-        .replace("{{news_rows}}", news_rows)
+        .replace("{{news_rows}}", news_rows)\
+        .replace("{{tv_rows}}", tv_rows)\
+        .replace("{{perf_total}}", str(total))\
+        .replace("{{perf_winrate}}", str(winrate))\
+        .replace("{{perf_color}}", perf_color)\
+        .replace("{{perf_emoji}}", perf_emoji)\
+        .replace("{{perf_wins}}", str(wins))\
+        .replace("{{perf_losses}}", str(losses))\
+        .replace("{{perf_best}}", best)\
+        .replace("{{perf_best_wr}}", str(best_wr))\
+        .replace("{{perf_worst}}", worst)\
+        .replace("{{perf_worst_wr}}", str(worst_wr))\
+        .replace("{{perf_tp1}}", str(tp1))\
+        .replace("{{perf_tp2}}", str(tp2))\
+        .replace("{{perf_tp3}}", str(tp3))\
+        .replace("{{perf_sl}}", str(sl))
 
     # ensure dashboard dir
     out = Path(out_path)

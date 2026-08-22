@@ -1,0 +1,519 @@
+// @version=5
+// =============================================================================
+// KDRX Indicator v2 — Supertrend + MACD + EMA Filters + Winrate + MTF + Quality
+// Upgraded add-on for crypto-alert-system (halal, 100-coin, Algeria 08:00)
+// Backward compatible: all original settings preserved, new toggles default ON
+// Disclaimer: Rule-based signals only. Not financial advice. DYOR.
+// =============================================================================
+indicator("KDRX v2 — Supertrend MACD EMA + Winrate + MTF + Quality", shorttitle="KDRX v2", overlay=true, max_labels_count=500, max_lines_count=500, max_boxes_count=500)
+
+// ========================================
+// === ORIGINAL INPUTS (preserved) ===
+// ========================================
+grpST = "SUPERTREND"
+atrPeriod = input.int(10, "ATR Period", group=grpST, minval=1)
+atrMult   = input.float(3.0, "ATR Multiplier", group=grpST, step=0.1)
+grpMACD = "MACD"
+fastLen   = input.int(12, "Fast Length", group=grpMACD)
+slowLen   = input.int(26, "Slow Length", group=grpMACD)
+sigLen    = input.int(9, "Signal Length", group=grpMACD)
+grpEMA = "EMA FILTERS"
+ema150Len = input.int(150, "EMA 150 Length", group=grpEMA)
+ema250Len = input.int(250, "EMA 250 Length", group=grpEMA)
+hma55Len  = input.int(55, "HMA 55 Length", group=grpEMA)
+grpVOL = "VOLUME"
+voscShort = input.int(5, "VOSC Short", group=grpVOL)
+voscLong  = input.int(20, "VOSC Long", group=grpVOL)
+grpTP = "TAKE PROFIT / STOP"
+multTP1 = input.float(1.0, "TP1 Multiplier", group=grpTP, step=0.1)
+multTP2 = input.float(2.0, "TP2 Multiplier", group=grpTP, step=0.1)
+multTP3 = input.float(3.0, "TP3 Multiplier", group=grpTP, step=0.1)
+grpStyle = "STYLE"
+colorBars = input.bool(true, "Color Bars by Signal", group=grpStyle)
+showSignals = input.bool(true, "Show Buy/Sell Labels", group=grpStyle)
+showTP    = input.bool(true, "Show TP/SL Lines", group=grpStyle)
+grpPanel = "SMART PANEL"
+showPanel = input.bool(true, "Show Smart Panel", group=grpPanel)
+panelPos  = input.string("bottom_right", "Panel Position", options=["top_left","top_right","bottom_left","bottom_right","top_center","bottom_center"], group=grpPanel)
+grpAlerts = "CUSTOM ALERTS CREATOR"
+alertBuy  = input.bool(true, "Buy Signal Alert", group=grpAlerts)
+alertSell = input.bool(true, "Sell Signal Alert", group=grpAlerts)
+alertStrongBuy  = input.bool(true, "Strong Buy Alert", group=grpAlerts)
+alertStrongSell = input.bool(true, "Strong Sell Alert", group=grpAlerts)
+alertTP1  = input.bool(true, "TP1 Hit Alert", group=grpAlerts)
+alertTP2  = input.bool(true, "TP2 Hit Alert", group=grpAlerts)
+alertTP3  = input.bool(true, "TP3 Hit Alert", group=grpAlerts)
+alertSL   = input.bool(true, "SL Hit Alert", group=grpAlerts)
+
+// === NEW INPUTS (Add-On) ===
+grpPerf = "PERFORMANCE / WINRATE"
+showWinrate = input.bool(true, "Show Winrate in Panel", group=grpPerf)
+grpMTF = "MTF CONFLUENCE"
+showMTFPanel  = input.bool(true, "Show MTF Panel", group=grpMTF)
+mtfPanelPos   = input.string("top_left", "MTF Panel Position", options=["top_left","top_right","bottom_left","bottom_right"], group=grpMTF)
+grpQuality = "QUALITY SCORE"
+showQuality = input.bool(true, "Show Quality Stars on Labels", group=grpQuality)
+grpTFLabel = "TIMEFRAME LABEL"
+showTFLabel = input.bool(true, "Show Timeframe Mode Label", group=grpTFLabel)
+grpNewAlerts = "NEW ALERTS (v2)"
+alertHighQBuy  = input.bool(true, "High Quality Buy (≥4★)", group=grpNewAlerts)
+alertHighQSell = input.bool(true, "High Quality Sell (≥4★)", group=grpNewAlerts)
+alertMTFBull   = input.bool(true, "MTF Confluence Bull (≥6/8)", group=grpNewAlerts)
+alertMTFBear   = input.bool(true, "MTF Confluence Bear (≥6/8)", group=grpNewAlerts)
+
+// ========================================
+// === CORE CALCULATIONS (original) ===
+// ========================================
+atr = ta.atr(atrPeriod)
+hl2_ = hl2
+upperBand = hl2_ + atrMult * atr
+lowerBand = hl2_ - atrMult * atr
+// Supertrend
+var float st = na
+var int stDir = 1
+prevSt = nz(st[1], close)
+prevDir = nz(stDir[1], 1)
+stDir := close > prevSt ? 1 : close < prevSt ? -1 : prevDir
+st := stDir == 1 ? math.max(lowerBand, prevSt) : math.min(upperBand, prevSt)
+atrStopLong  = st
+atrStopShort = st
+
+[macdLine, signalLine, hist] = ta.macd(close, fastLen, slowLen, sigLen)
+macdBull = macdLine > signalLine
+macdBear = macdLine < signalLine
+
+ema150 = ta.ema(close, ema150Len)
+ema250 = ta.ema(close, ema250Len)
+hma55  = ta.hma(close, hma55Len)
+trendBull = ema150 > ema250
+trendBear = ema150 < ema250
+hmaBull = hma55 > hma55[1]
+hmaBear = hma55 < hma55[1]
+
+vosc = ta.ema(volume, voscShort) - ta.ema(volume, voscLong)
+volAbove = vosc > 0
+
+// Supertrend signals + pullback / contrarian (original logic preserved)
+buySignal  = ta.crossover(close, st) and macdBull and trendBull
+sellSignal = ta.crossunder(close, st) and macdBear and trendBear
+// pullback: price touches EMA150 after trend
+pullbackBuy  = trendBull and ta.crossunder(low, ema150) and close > ema150 and macdBull
+pullbackSell = trendBear and ta.crossover(high, ema150) and close < ema150 and macdBear
+contraBuy    = trendBear and ta.crossover(close, st) and hmaBull
+contraSell   = trendBear ? false : trendBull and ta.crossunder(close, st) and hmaBear
+strongBuy  = buySignal and volAbove and hmaBull
+strongSell = sellSignal and volAbove and hmaBear
+
+// Bar coloring
+barColor = colorBars ? (buySignal or strongBuy ? color.new(color.green, 0) : sellSignal or strongSell ? color.new(color.red, 0) : na) : na
+barcolor(barColor)
+
+// Trailing SL + TP logic (long only visualization; short inverted)
+longEntry = buySignal or strongBuy
+shortEntry = sellSignal or strongSell
+
+// ========================================
+// === MTF CONFLUENCE (11 TFs, EMA200 dir) ===
+// ========================================
+ema200_1m  = request.security(syminfo.tickerid, "1",  ta.ema(close, 200))
+ema200_3m  = request.security(syminfo.tickerid, "3",  ta.ema(close, 200))
+ema200_5m  = request.security(syminfo.tickerid, "5",  ta.ema(close, 200))
+ema200_10m = request.security(syminfo.tickerid, "10", ta.ema(close, 200))
+ema200_15m = request.security(syminfo.tickerid, "15", ta.ema(close, 200))
+ema200_30m = request.security(syminfo.tickerid, "30", ta.ema(close, 200))
+ema200_1H  = request.security(syminfo.tickerid, "60", ta.ema(close, 200))
+ema200_2H  = request.security(syminfo.tickerid, "120",ta.ema(close, 200))
+ema200_4H  = request.security(syminfo.tickerid, "240",ta.ema(close, 200))
+ema200_12H = request.security(syminfo.tickerid, "720",ta.ema(close, 200))
+ema200_1D  = request.security(syminfo.tickerid, "D",  ta.ema(close, 200))
+
+// Bull if price > EMA200 on that TF (use security close)
+c1m  = request.security(syminfo.tickerid, "1",  close)
+c3m  = request.security(syminfo.tickerid, "3",  close)
+c5m  = request.security(syminfo.tickerid, "5",  close)
+c10m = request.security(syminfo.tickerid, "10", close)
+c15m = request.security(syminfo.tickerid, "15", close)
+c30m = request.security(syminfo.tickerid, "30", close)
+c1H  = request.security(syminfo.tickerid, "60", close)
+c2H  = request.security(syminfo.tickerid, "120",close)
+c4H  = request.security(syminfo.tickerid, "240",close)
+c12H = request.security(syminfo.tickerid, "720",close)
+c1D  = request.security(syminfo.tickerid, "D",  close)
+
+TF1Bull  = c1m  > ema200_1m
+TF3Bull  = c3m  > ema200_3m
+TF5Bull  = c5m  > ema200_5m
+TF10Bull = c10m > ema200_10m
+TF15Bull = c15m > ema200_15m
+TF30Bull = c30m > ema200_30m
+TF1HBull = c1H  > ema200_1H
+TF2HBull = c2H  > ema200_2H
+TF4HBull = c4H  > ema200_4H
+TF12HBull= c12H > ema200_12H
+TFDBull  = c1D  > ema200_1D
+
+// 8-TF score for display (use main 8 as in prompt spec)
+bullCount8 = (TF1Bull?1:0)+(TF3Bull?1:0)+(TF5Bull?1:0)+(TF15Bull?1:0)+(TF30Bull?1:0)+(TF1HBull?1:0)+(TF4HBull?1:0)+(TFDBull?1:0)
+mtfScoreStr = str.tostring(bullCount8) + "/8"
+mtfBullish = bullCount8 >= 5
+mtfStrongBull = bullCount8 >= 6
+mtfStrongBear = bullCount8 <= 2  // 6/8 bear = 2/8 bull
+
+// ========================================
+// === SIGNAL QUALITY SCORE (0-5 stars) ===
+// ========================================
+qualityBuy  = (macdBull?1:0) + (trendBull?1:0) + (hmaBull?1:0) + (volAbove?1:0) + (mtfBullish?1:0)
+qualitySell = (macdBear?1:0) + (trendBear?1:0) + (hmaBear?1:0) + (volAbove?1:0) + ((bullCount8 <= 3)?1:0)
+quality = buySignal or strongBuy ? qualityBuy : sellSignal or strongSell ? qualitySell : 0
+starsStr(ql) =>
+    q = math.max(0, math.min(5, ql))
+    filled = "★"
+    empty  = "☆"
+    res = ""
+    for i=0 to 4
+        res += i < q ? filled : empty
+    res
+
+trendCheck = trendBull ? "✓ Trend" : "✗ Trend"
+macdCheck  = (buySignal and macdBull) or (sellSignal and macdBear) ? "✓ MACD" : "✗ MACD"
+volCheck   = volAbove ? "✓ Vol" : "✗ Vol"
+mtfCheck   = mtfBullish ? "✓ MTF" : "✗ MTF"
+momCheck   = hmaBull or hmaBear ? "✓ Mom" : "✗ Mom"
+qualityDetail = trendCheck + "  " + macdCheck + "  " + volCheck + "  " + mtfCheck + "  " + momCheck
+
+// ========================================
+// === WINRATE TRACKER ===
+// ========================================
+var int total_signals = 0
+var int total_wins    = 0
+var int total_losses  = 0
+var int tp1_hit_count = 0
+var int tp2_hit_count = 0
+var int tp3_hit_count = 0
+var int sl_hit_count  = 0
+var float sumRR       = 0.0
+var int winsForRR     = 0
+
+// Current open trade tracking
+var float entryPrice = na
+var float stopPrice  = na
+var float tp1Price   = na
+var float tp2Price   = na
+var float tp3Price   = na
+var bool  isLong  = false
+var bool  isShort = false
+var bool  tradeOpen = false
+var int   entryBar  = na
+var float risk      = na
+
+// Helper to open trade
+openLong() =>
+    total_signals += 1
+    entryPrice := close
+    stopPrice  := atrStopLong
+    risk       := math.max(close - stopPrice, close * 0.001)
+    tp1Price   := entryPrice + risk * multTP1
+    tp2Price   := entryPrice + risk * multTP2
+    tp3Price   := entryPrice + risk * multTP3
+    isLong := true
+    isShort := false
+    tradeOpen := true
+    entryBar := bar_index
+
+openShort() =>
+    total_signals += 1
+    entryPrice := close
+    stopPrice  := atrStopShort
+    risk       := math.max(stopPrice - close, close * 0.001)
+    tp1Price   := entryPrice - risk * multTP1
+    tp2Price   := entryPrice - risk * multTP2
+    tp3Price   := entryPrice - risk * multTP3
+    isShort := true
+    isLong := false
+    tradeOpen := true
+    entryBar := bar_index
+
+if buySignal or strongBuy
+    // close previous trade before new signal (partial scoring)
+    if tradeOpen
+        // if previous trade not resolved, count as no score (close)
+        tradeOpen := false
+    openLong()
+if sellSignal or strongSell
+    if tradeOpen
+        tradeOpen := false
+    openShort()
+
+// Check TP/SL hits on subsequent bars
+var bool tp1Hit = false
+var bool tp2Hit = false
+var bool tp3Hit = false
+
+if tradeOpen
+    if isLong
+        // TP1 hit?
+        if not tp1Hit and high >= tp1Price
+            tp1Hit := true
+            tp1_hit_count += 1
+            total_wins += 1
+            sumRR += multTP1
+            winsForRR += 1
+        // TP2 after TP1
+        if tp1Hit and not tp2Hit and high >= tp2Price
+            tp2Hit := true
+            tp2_hit_count += 1
+            total_wins += 1  // bonus per spec
+            sumRR += (multTP2 - multTP1)
+            winsForRR += 1
+        if tp2Hit and not tp3Hit and high >= tp3Price
+            tp3Hit := true
+            tp3_hit_count += 1
+            total_wins += 1
+            sumRR += (multTP3 - multTP2)
+            winsForRR += 1
+        // SL hit before any TP => loss
+        if low <= stopPrice and not tp1Hit
+            total_losses += 1
+            sl_hit_count += 1
+            // reset trade
+            tradeOpen := false
+            tp1Hit := false
+            tp2Hit := false
+            tp3Hit := false
+        // if TP1 hit, keep trade open until TP3 or next signal; reset on TP3 or opposite signal will close via above
+        if tp3Hit
+            tradeOpen := false
+            tp1Hit := false
+            tp2Hit := false
+            tp3Hit := false
+    if isShort
+        if not tp1Hit and low <= tp1Price
+            tp1Hit := true
+            tp1_hit_count += 1
+            total_wins += 1
+            sumRR += multTP1
+            winsForRR += 1
+        if tp1Hit and not tp2Hit and low <= tp2Price
+            tp2Hit := true
+            tp2_hit_count += 1
+            total_wins += 1
+            sumRR += (multTP2 - multTP1)
+            winsForRR += 1
+        if tp2Hit and not tp3Hit and low <= tp3Price
+            tp3Hit := true
+            tp3_hit_count += 1
+            total_wins += 1
+            sumRR += (multTP3 - multTP2)
+            winsForRR += 1
+        if high >= stopPrice and not tp1Hit
+            total_losses += 1
+            sl_hit_count += 1
+            tradeOpen := false
+            tp1Hit := false
+            tp2Hit := false
+            tp3Hit := false
+        if tp3Hit
+            tradeOpen := false
+            tp1Hit := false
+            tp2Hit := false
+            tp3Hit := false
+
+winrate_pct = total_signals > 0 ? total_wins / total_signals * 100 : 0.0
+avg_rr = winsForRR > 0 ? sumRR / winsForRR : 0.0
+
+// ========================================
+// === PLOTTING: TP/SL Lines ===
+// ========================================
+plot(showTP and tradeOpen and isLong ? tp1Price : na, "TP1 Long", color=color.new(color.green, 0), style=plot.style_linebr)
+plot(showTP and tradeOpen and isLong ? tp2Price : na, "TP2 Long", color=color.new(color.green, 30), style=plot.style_linebr)
+plot(showTP and tradeOpen and isLong ? tp3Price : na, "TP3 Long", color=color.new(color.green, 60), style=plot.style_linebr)
+plot(showTP and tradeOpen and isShort? tp1Price : na, "TP1 Short", color=color.new(color.red, 0), style=plot.style_linebr)
+plot(showTP and tradeOpen ? stopPrice : na, "Stop", color=color.new(color.red, 0), style=plot.style_linebr)
+plot(st, "Supertrend", color=stDir==1?color.green:color.red, linewidth=2)
+
+// ========================================
+// === LABELS with Quality Stars ===
+// ========================================
+if showSignals and (buySignal or strongBuy)
+    q = qualityBuy
+    lbl = (strongBuy ? "STRONG BUY" : "BUY") + "  " + starsStr(q)
+    detail = showQuality ? "\n" + qualityDetail : ""
+    label.new(bar_index, low, lbl + detail, style=label.style_label_up, color=color.new(color.green, 0), textcolor=color.white, size=size.tiny)
+if showSignals and (sellSignal or strongSell)
+    q = qualitySell
+    lbl = (strongSell ? "STRONG SELL" : "SELL") + "  " + starsStr(q)
+    detail = showQuality ? "\n" + qualityDetail : ""
+    label.new(bar_index, high, lbl + detail, style=label.style_label_down, color=color.new(color.red, 0), textcolor=color.white, size=size.tiny)
+
+// ========================================
+// === SMART PANEL (original + Performance) ===
+// ========================================
+posTable(panelPos) =>
+    switch panelPos
+        "top_left"     => position.top_left
+        "top_right"    => position.top_right
+        "bottom_left"  => position.bottom_left
+        "bottom_right" => position.bottom_right
+        "top_center"   => position.top_center
+        "bottom_center"=> position.bottom_center
+
+var table smartPanel = na
+if showPanel and barstate.islast
+    if na(smartPanel)
+        smartPanel := table.new(posTable(panelPos), 2, 18, bgcolor=color.new(color.black, 20), border_width=1)
+    // header
+    table.cell(smartPanel, 0, 0, "KDRX v2", text_color=color.white, bgcolor=color.new(color.blue, 0), text_halign=text.align_center)
+    table.cell(smartPanel, 1, 0, syminfo.ticker, text_color=color.white, bgcolor=color.new(color.blue, 0))
+    table.cell(smartPanel, 0, 1, "Supertrend", text_color=color.white)
+    table.cell(smartPanel, 1, 1, stDir==1?"▲ BULL":"▼ BEAR", bgcolor=stDir==1?color.new(color.green, 70):color.new(color.red,70), text_color=color.white)
+    table.cell(smartPanel, 0, 2, "MACD", text_color=color.white)
+    table.cell(smartPanel, 1, 2, macdBull?"▲ BULL":"▼ BEAR", bgcolor=macdBull?color.new(color.green,70):color.new(color.red,70), text_color=color.white)
+    table.cell(smartPanel, 0, 3, "EMA150/250", text_color=color.white)
+    table.cell(smartPanel, 1, 3, trendBull?"▲ BULL":"▼ BEAR", bgcolor=trendBull?color.new(color.green,70):color.new(color.red,70), text_color=color.white)
+    table.cell(smartPanel, 0, 4, "HMA55", text_color=color.white)
+    table.cell(smartPanel, 1, 4, hmaBull?"▲ MOM":"▼ MOM", bgcolor=hmaBull?color.new(color.green,70):color.new(color.red,70), text_color=color.white)
+    table.cell(smartPanel, 0, 5, "Volume", text_color=color.white)
+    table.cell(smartPanel, 1, 5, volAbove?"▲ ABOVE":"▼ BELOW", bgcolor=volAbove?color.new(color.green,70):color.new(color.red,70), text_color=color.white)
+    // Performance section (NEW)
+    table.cell(smartPanel, 0, 6, "— PERFORMANCE —", text_color=color.yellow, bgcolor=color.new(color.black, 0), text_halign=text.align_center)
+    table.cell(smartPanel, 1, 6, "", bgcolor=color.new(color.black,0))
+    table.cell(smartPanel, 0, 7, "Signals", text_color=color.white)
+    table.cell(smartPanel, 1, 7, str.tostring(total_signals), text_color=color.white)
+    wrColor = winrate_pct > 55 ? color.new(color.green, 0) : winrate_pct >= 45 ? color.new(color.yellow, 0) : color.new(color.red, 0)
+    table.cell(smartPanel, 0, 8, "Win Rate", text_color=color.white)
+    table.cell(smartPanel, 1, 8, str.tostring(winrate_pct, format.percent), bgcolor=wrColor, text_color=color.white)
+    table.cell(smartPanel, 0, 9, "Wins/Loss", text_color=color.white)
+    table.cell(smartPanel, 1, 9, str.tostring(total_wins) + " W / " + str.tostring(total_losses) + " L", text_color=color.white)
+    table.cell(smartPanel, 0, 10, "TP1 Hit", text_color=color.white)
+    table.cell(smartPanel, 1, 10, str.tostring(tp1_hit_count) + " times", text_color=color.white)
+    table.cell(smartPanel, 0, 11, "TP2 Hit", text_color=color.white)
+    table.cell(smartPanel, 1, 11, str.tostring(tp2_hit_count) + " times", text_color=color.white)
+    table.cell(smartPanel, 0, 12, "TP3 Hit", text_color=color.white)
+    table.cell(smartPanel, 1, 12, str.tostring(tp3_hit_count) + " times", text_color=color.white)
+    table.cell(smartPanel, 0, 13, "SL Hit", text_color=color.white)
+    table.cell(smartPanel, 1, 13, str.tostring(sl_hit_count) + " times", text_color=color.white)
+    table.cell(smartPanel, 0, 14, "Avg RR", text_color=color.white)
+    table.cell(smartPanel, 1, 14, "1:" + str.tostring(avg_rr, format.mintick), text_color=color.white)
+
+// ========================================
+// === MTF CONFLUENCE PANEL (NEW) ===
+// ========================================
+var table mtfPanel = na
+posMTF(mtfPanelPos) =>
+    switch mtfPanelPos
+        "top_left"     => position.top_left
+        "top_right"    => position.top_right
+        "bottom_left"  => position.bottom_left
+        "bottom_right" => position.bottom_right
+
+if showMTFPanel and barstate.islast
+    if na(mtfPanel)
+        mtfPanel := table.new(posMTF(mtfPanelPos), 2, 10, bgcolor=color.new(color.black, 10), border_width=1)
+    table.cell(mtfPanel, 0, 0, "TIMEFRAME CONFLUENCE", text_color=color.white, bgcolor=color.new(color.purple, 0), text_halign=text.align_center)
+    table.cell(mtfPanel, 1, 0, "", bgcolor=color.new(color.purple,0))
+    // need helper to fill rows
+    // Row helper (inline)
+    table.cell(mtfPanel, 0, 1, "1m", text_color=color.white)
+    table.cell(mtfPanel, 1, 1, TF1Bull?"▲ BULL":"▼ BEAR", bgcolor=TF1Bull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    table.cell(mtfPanel, 0, 2, "3m", text_color=color.white)
+    table.cell(mtfPanel, 1, 2, TF3Bull?"▲ BULL":"▼ BEAR", bgcolor=TF3Bull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    table.cell(mtfPanel, 0, 3, "5m", text_color=color.white)
+    table.cell(mtfPanel, 1, 3, TF5Bull?"▲ BULL":"▼ BEAR", bgcolor=TF5Bull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    table.cell(mtfPanel, 0, 4, "15m", text_color=color.white)
+    table.cell(mtfPanel, 1, 4, TF15Bull?"▲ BULL":"▼ BEAR", bgcolor=TF15Bull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    table.cell(mtfPanel, 0, 5, "30m", text_color=color.white)
+    table.cell(mtfPanel, 1, 5, TF30Bull?"▲ BULL":"▼ BEAR", bgcolor=TF30Bull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    table.cell(mtfPanel, 0, 6, "1H", text_color=color.white)
+    table.cell(mtfPanel, 1, 6, TF1HBull?"▲ BULL":"▼ BEAR", bgcolor=TF1HBull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    table.cell(mtfPanel, 0, 7, "4H", text_color=color.white)
+    table.cell(mtfPanel, 1, 7, TF4HBull?"▲ BULL":"▼ BEAR", bgcolor=TF4HBull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    table.cell(mtfPanel, 0, 8, "1D", text_color=color.white)
+    table.cell(mtfPanel, 1, 8, TFDBull?"▲ BULL":"▼ BEAR", bgcolor=TFDBull?color.new(color.green,20):color.new(color.red,20), text_color=color.white)
+    scoreColor = bullCount8 >= 6 ? color.new(color.green, 0) : bullCount8 >= 4 ? color.new(color.yellow, 0) : color.new(color.red, 0)
+    scoreEmoji = bullCount8 >= 6 ? "🟢" : bullCount8 >= 4 ? "🟡" : "🔴"
+    table.cell(mtfPanel, 0, 9, "SCORE: " + mtfScoreStr + " BULLISH  " + scoreEmoji, text_color=color.white, bgcolor=scoreColor, text_halign=text.align_center)
+    table.cell(mtfPanel, 1, 9, "", bgcolor=scoreColor)
+
+// ========================================
+// === TIMEFRAME MODE LABEL (NEW) ===
+// ========================================
+tf = timeframe.period
+mode = tf == "1" or tf == "3" or tf == "5" ? "SCALPING MODE" : tf == "15" or tf == "30" or tf == "60" ? "INTRADAY MODE" : tf == "240" or tf == "D" ? "SWING MODE" : str.contains(tf, "W") or str.contains(tf, "M") ? "POSITION MODE" : "CUSTOM MODE"
+if showTFLabel and barstate.islast
+    var label tfLabel = na
+    if na(tfLabel)
+        tfLabel := label.new(bar_index, high, "⏱ " + tf + " — " + mode, style=label.style_label_down, color=color.new(color.blue, 0), textcolor=color.white, size=size.small)
+    label.set_xy(tfLabel, bar_index, high)
+    label.set_text(tfLabel, "⏱ " + tf + " — " + mode)
+
+// ========================================
+// === ENHANCED ALERTS (JSON) ===
+// ========================================
+// Build JSON string for alerts
+rsiVal = ta.rsi(close, 14)
+macdDir = macdBull ? "bullish" : macdBear ? "bearish" : "neutral"
+
+jsonFor(signal, strength, stars) =>
+    s = "{"
+    s += "\"signal\": \"" + signal + "\", "
+    s += "\"strength\": \"" + strength + "\", "
+    s += "\"quality_stars\": " + str.tostring(stars) + ", "
+    s += "\"coin\": \"" + syminfo.ticker + "\", "
+    s += "\"timeframe\": \"" + timeframe.period + "\", "
+    s += "\"price\": " + str.tostring(close, format.mintick) + ", "
+    s += "\"stop_loss\": " + str.tostring(stopPrice, format.mintick) + ", "
+    s += "\"tp1\": " + str.tostring(tp1Price, format.mintick) + ", "
+    s += "\"tp2\": " + str.tostring(tp2Price, format.mintick) + ", "
+    s += "\"tp3\": " + str.tostring(tp3Price, format.mintick) + ", "
+    s += "\"rsi\": " + str.tostring(rsiVal, "#.##") + ", "
+    s += "\"macd_direction\": \"" + macdDir + "\", "
+    s += "\"mtf_score\": \"" + mtfScoreStr + "\", "
+    s += "\"winrate\": " + str.tostring(winrate_pct, "#.##") + ", "
+    s += "\"total_signals\": " + str.tostring(total_signals) + ", "
+    s += "\"timestamp\": \"{{timenow}}\""
+    s += "}"
+    s
+
+buyJSON       = jsonFor("BUY", "NORMAL", qualityBuy)
+strongBuyJSON = jsonFor("STRONG_BUY", "STRONG", qualityBuy)
+sellJSON      = jsonFor("SELL", "NORMAL", qualitySell)
+strongSellJSON= jsonFor("STRONG_SELL", "STRONG", qualitySell)
+highQBuyJSON  = jsonFor("BUY", "HIGH_QUALITY", qualityBuy)
+highQSellJSON = jsonFor("SELL", "HIGH_QUALITY", qualitySell)
+
+mtfBullJSON = "{\"signal\": \"MTF_BULL\", \"mtf_score\": \"" + mtfScoreStr + "\", \"coin\": \"" + syminfo.ticker + "\", \"timeframe\": \"" + timeframe.period + "\"}"
+mtfBearJSON = "{\"signal\": \"MTF_BEAR\", \"mtf_score\": \"" + mtfScoreStr + "\", \"coin\": \"" + syminfo.ticker + "\", \"timeframe\": \"" + timeframe.period + "\"}"
+
+tp1JSON = "{\"signal\": \"TP1_HIT\", \"coin\": \"" + syminfo.ticker + "\", \"price\": " + str.tostring(close, format.mintick) + "}"
+tp2JSON = "{\"signal\": \"TP2_HIT\", \"coin\": \"" + syminfo.ticker + "\", \"price\": " + str.tostring(close, format.mintick) + "}"
+tp3JSON = "{\"signal\": \"TP3_HIT\", \"coin\": \"" + syminfo.ticker + "\", \"price\": " + str.tostring(close, format.mintick) + "}"
+slJSON  = "{\"signal\": \"SL_HIT\", \"coin\": \"" + syminfo.ticker + "\", \"price\": " + str.tostring(close, format.mintick) + "}"
+
+// Conditions for new alerts
+highQBuyCond  = (buySignal or strongBuy) and qualityBuy >= 4
+highQSellCond = (sellSignal or strongSell) and qualitySell >= 4
+mtfBullCond = ta.change(bullCount8) and mtfStrongBull
+mtfBearCond = ta.change(bullCount8) and mtfStrongBear
+
+// TP/SL hit conditions (for alertcreator)
+tp1HitCond = tradeOpen and tp1Hit and not tp1Hit[1]
+tp2HitCond = tradeOpen and tp2Hit and not tp2Hit[1]
+tp3HitCond = tradeOpen and tp3Hit and not tp3Hit[1]
+slHitCond  = (total_losses > total_losses[1]) // loss incremented this bar
+
+// Alertconditions (TradingView will show these in Create Alert dropdown)
+alertcondition(buySignal or pullbackBuy, title="Buy Signal", message=buyJSON)
+alertcondition(strongBuy, title="Strong Buy Signal", message=strongBuyJSON)
+alertcondition(sellSignal or pullbackSell, title="Sell Signal", message=sellJSON)
+alertcondition(strongSell, title="Strong Sell Signal", message=strongSellJSON)
+alertcondition(highQBuyCond, title="High Quality Buy (≥4★)", message=highQBuyJSON)
+alertcondition(highQSellCond, title="High Quality Sell (≥4★)", message=highQSellJSON)
+alertcondition(tp1HitCond, title="TP1 Hit", message=tp1JSON)
+alertcondition(tp2HitCond, title="TP2 Hit", message=tp2JSON)
+alertcondition(tp3HitCond, title="TP3 Hit", message=tp3JSON)
+alertcondition(slHitCond, title="SL Hit", message=slJSON)
+alertcondition(mtfBullCond, title="MTF Confluence Bull (≥6/8)", message=mtfBullJSON)
+alertcondition(mtfBearCond, title="MTF Confluence Bear (≥6/8)", message=mtfBearJSON)
+
+// Note: Winrate resets on timeframe change / history reload — Pine Script var limitation. Documented.
+// Note: Fill WEBHOOK_SECRET in webhook_server.py and TradingView alert Webhook URL: http://YOUR_IP:5000/webhook/tradingview or Render URL

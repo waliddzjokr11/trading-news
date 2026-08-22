@@ -173,6 +173,16 @@ sources:
   onchain_enabled: true
   price_chunk_size: 50           # split 100 coins into chunks of 50 for URL safety
 
+# ── TRADINGVIEW WEBHOOK ───────────────────────────────────────
+tradingview:
+  webhook_enabled: true
+  webhook_port: 5000
+  min_quality_stars: 3        # ignore TV signals below this quality
+  tv_signal_weight: 0.50      # TV signal weight in combined score
+  news_weight_tv: 0.30        # news weight when TV signal present
+  onchain_weight_tv: 0.20     # onchain weight when TV signal present
+  ngrok_enabled: false        # set true if running on laptop with ngrok
+
 # ── LOGGING ──────────────────────────────────────────────────
 logging:
   level: "INFO"                  # DEBUG | INFO | WARNING | ERROR

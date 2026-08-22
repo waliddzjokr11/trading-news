@@ -31,20 +31,28 @@ EMOJI = {
 LABEL_RANK = {"DUMP_WARNING": 0, "BEARISH": 1, "NEUTRAL": 2, "BULLISH": 3, "STRONG_BUY": 4}
 
 
-def composite_label(score):
+def composite_label(score, config=None):
     """
     Maps composite_score to label.
-    ≤-4 DUMP_WARNING, -3..-1.5 BEARISH, -1.5..1.5 NEUTRAL, 1.5..3 BULLISH, ≥4 STRONG_BUY  (spec)
-    Spec says -3 to -1.5 BEARISH; we implement inclusive.
+    Uses signal_thresholds from config if present (hardened winrate fix), else defaults.
+    Hardened: ≤-4.5 DUMP, ≤-2.5 BEARISH, -2.5..1.5 NEUTRAL, ≥2.5 BULLISH, ≥4.5 STRONG_BUY
     """
-    if score <= -4:
+    th = config.get("signal_thresholds", {}) if config else {}
+    # defaults depend on whether hardened thresholds exist
+    has_hard = bool(th)
+    dump = float(th.get("dump_warning", -4.5 if has_hard else -4.0))
+    bear = float(th.get("bearish", -2.5 if has_hard else -1.5))
+    neut_high = float(th.get("neutral_high", 1.5))
+    bull = float(th.get("bullish", 2.5 if has_hard else 1.5))
+    strong = float(th.get("strong_buy", 4.5 if has_hard else 4.0))
+    if score <= dump:
         return "DUMP_WARNING"
-    elif score < -1.5:
+    elif score <= bear:
         return "BEARISH"
-    elif score <= 1.5:
+    elif score <= neut_high:
         return "NEUTRAL"
-    elif score < 4:
-        return "BULLISH"
+    elif score < strong:
+        return "BULLISH" if score >= bull else "NEUTRAL"
     else:
         return "STRONG_BUY"
 
@@ -94,9 +102,7 @@ def evaluate(coin_id, price_result, news_result, onchain_result, config):
     os = float(onchain_result.get("score", 0))
 
     composite = ps * wp + ns * wn + os * wo
-    # scale to -5..5 then map; but composite already weighted sum of -5..5 -> -5..5
-    # To match spec mapping where thresholds are at ±1.5, ±4, we keep as is
-    label = composite_label(composite)
+    label = composite_label(composite, config)
     # Strength / stars for Telegram (how strong is it)
     ab = abs(composite)
     if ab >= 4:
@@ -139,6 +145,76 @@ def evaluate(coin_id, price_result, news_result, onchain_result, config):
         "top_news": news_result.get("top_news", []),
         "onchain_events": onchain_result.get("events", []),
     }
+
+
+def passes_quality_gate(signal_direction: str, composite_score: float, tv_data: dict, price_data: dict, config: dict) -> tuple[bool, list[str]]:
+    """
+    Returns (passes: bool, reasons_failed: list[str])
+    ALL conditions in gate must pass for an alert to fire.
+    """
+    gate = config.get("alert_quality_gate", {})
+    if not gate.get("enabled", True):
+        return True, []
+    failed = []
+    # Determine direction: BUY/BULLISH vs SELL/BEARISH
+    upper = str(signal_direction).upper()
+    is_buy = upper in ("BUY", "STRONG_BUY", "BULLISH", "STRONG BUY")
+    # fallback: composite positive = buy, negative = sell if label is NEUTRAL? Use composite
+    if upper == "NEUTRAL":
+        is_buy = composite_score >= 0
+    reqs = gate.get("buy_requires" if is_buy else "sell_requires", {})
+    # 1. Composite score threshold
+    min_score = reqs.get("min_composite_score", 2.5)
+    # For sell, min_score is negative, check absolute
+    if is_buy and composite_score < min_score:
+        failed.append(f"composite {composite_score:.2f} < {min_score} required")
+    elif not is_buy and composite_score > min_score:
+        # min_score for sell is negative like -2.5, so check > -2.5 fails
+        failed.append(f"composite {composite_score:.2f} > {min_score} required")
+    # 2. TradingView quality stars (only if TV data present)
+    if tv_data:
+        stars = tv_data.get("quality_stars", 0)
+        try:
+            stars = int(stars)
+        except:
+            stars = 0
+        min_stars = reqs.get("min_tv_quality_stars", 4)
+        if stars < min_stars:
+            failed.append(f"TV quality {stars}★ < {min_stars}★ required")
+        # 3. MTF confluence
+        mtf_raw = tv_data.get("mtf_score", "0/8")
+        try:
+            mtf_bull = int(str(mtf_raw).split("/")[0])
+        except Exception:
+            mtf_bull = 0
+        min_mtf = reqs.get("min_mtf_confluence", 5)
+        mtf_aligned = mtf_bull if is_buy else (8 - mtf_bull)
+        if mtf_aligned < min_mtf:
+            failed.append(f"MTF {mtf_raw} only {mtf_aligned}/8 aligned ({min_mtf} required)")
+        # 4. MACD direction
+        macd_dir = tv_data.get("macd_direction", "")
+        if reqs.get("macd_bullish") and is_buy and macd_dir != "bullish":
+            failed.append(f"MACD not bullish (is: {macd_dir})")
+        if reqs.get("macd_bearish") and not is_buy and macd_dir != "bearish":
+            failed.append(f"MACD not bearish (is: {macd_dir})")
+    # 5. EMA200 direction (from price_data)
+    price = price_data.get("price", 0) if price_data else 0
+    ema200 = price_data.get("ema200", 0) if price_data else 0
+    if ema200 and ema200 > 0:
+        if reqs.get("price_above_ema200") and is_buy and price < ema200:
+            failed.append(f"price {price} below EMA200 {ema200:.2f}")
+        if reqs.get("price_below_ema200") and not is_buy and price > ema200:
+            failed.append(f"price {price} above EMA200 {ema200:.2f}")
+    # 6. Volume check
+    vol = price_data.get("volume_vs_avg", 1.0) if price_data else 1.0
+    try:
+        vol = float(vol)
+    except:
+        vol = 1.0
+    if reqs.get("volume_above_average") and vol < 1.2:
+        failed.append(f"volume {vol:.2f}x average (need > 1.2x)")
+    passes = len(failed) == 0
+    return passes, failed
 
 
 def meets_min_signal(signal, min_signal):

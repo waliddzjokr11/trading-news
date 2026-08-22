@@ -1,6 +1,7 @@
 # ============================================================
 # CRYPTO ALERT SYSTEM — USER CONFIGURATION
 # Algeria (Oran) — Africa/Algiers — Private repo default 30m
+# HARDENED for winrate >60% — high conviction only (20% → 60%+)
 # ============================================================
 
 # 100-coin watchlist: mostly-halal, top Binance volume + trading niche
@@ -126,29 +127,60 @@ poll_interval_minutes: 30
 
 # ── PRICE SIGNAL THRESHOLDS ─────────────────────────────────
 price:
-  short_window_minutes: 15       # window for short-term % change
-  short_change_pct: 3.0          # trigger if price moves ±3% in window
-  medium_window_minutes: 60      # window for medium-term % change
-  medium_change_pct: 6.0         # trigger if price moves ±6% in 1 hour
-  volume_multiplier: 2.5         # trigger if volume is 2.5x rolling average
-  rsi_oversold: 30               # RSI below this = oversold (bullish)
-  rsi_overbought: 70             # RSI above this = overbought (bearish)
+  short_window_minutes: 15
+  short_change_pct: 5.0          # RAISED from 3.0 → needs bigger move
+  medium_window_minutes: 60
+  medium_change_pct: 8.0         # RAISED from 6.0
+  volume_multiplier: 3.5         # RAISED from 2.5 → only real spikes
+  rsi_oversold: 28               # TIGHTENED from 30
+  rsi_overbought: 72             # TIGHTENED from 70
   rsi_period: 14
   macd_fast: 12
   macd_slow: 26
   macd_signal: 9
+  require_macd_rsi_agreement: true
+  min_bars_between_signals: 4
 
-# ── SIGNAL WEIGHTS (must sum to 1.0) ────────────────────────
+# ── SIGNAL WEIGHTS ────────────────────────────────────────────
 weights:
-  price: 0.40
-  news: 0.35
-  onchain: 0.25
+  price: 0.55       # RAISED from 0.40 — price doesn't lie
+  news: 0.20        # LOWERED from 0.35 — news is noisy
+  onchain: 0.25     # KEPT
+
+# ── SIGNAL SCORE THRESHOLDS ──────────────────────────────────
+signal_thresholds:
+  strong_buy: 4.5    # RAISED from 4.0
+  bullish: 2.5       # RAISED from 1.5
+  neutral_high: 1.5
+  neutral_low: -1.5
+  bearish: -2.5      # TIGHTENED from -1.5
+  dump_warning: -4.5 # TIGHTENED from -4.0
+
+# ── ALERT QUALITY GATE ───────────────────────────────────────
+alert_quality_gate:
+  enabled: true
+  buy_requires:
+    min_composite_score: 2.5
+    min_tv_quality_stars: 4
+    min_mtf_confluence: 5
+    price_above_ema200: true
+    macd_bullish: true
+    volume_above_average: true
+  sell_requires:
+    min_composite_score: -2.5
+    min_tv_quality_stars: 4
+    min_mtf_confluence: 5
+    price_below_ema200: true
+    macd_bearish: true
+    volume_above_average: true
 
 # ── NEWS SETTINGS ────────────────────────────────────────────
 news:
-  max_age_hours: 4               # ignore news older than this
-  min_sources_to_boost: 2        # boost score if story confirmed by N sources
-  dedup_ttl_hours: 24            # how long to remember seen headlines
+  max_age_hours: 2               # LOWERED from 4 — stale news lags
+  min_sources_to_boost: 2
+  dedup_ttl_hours: 24
+  min_news_score_to_count: 2.0   # news must be ≥ ±2.0 to matter
+  min_keyword_matches: 2         # require ≥2 keywords per headline
 
 # Custom keyword overrides (adds to built-in list)
 keywords:
@@ -159,32 +191,34 @@ keywords:
 alerts:
   email_enabled: false
   telegram_enabled: true
-  cooldown_minutes: 15           # short cooldown so you get every run (user wants all signals)
-  daily_digest_time: "08:00"     # 24h format, your local timezone
-  timezone: "Africa/Algiers"     # Oran
-  min_signal_to_alert: "NEUTRAL" # send ALL signals (DUMP/BEARISH/NEUTRAL/BULLISH/STRONG_BUY) with strength+news
-                                 # options: DUMP_WARNING, BEARISH, NEUTRAL, BULLISH, STRONG_BUY
-  max_alerts_per_run: 100        # 100 coins → send all (user requested)
+  cooldown_minutes: 90           # RAISED from 60 — avoid re-alerting same move
+  daily_digest_time: "08:00"
+  timezone: "Africa/Algiers"
+  min_signal_to_alert: "BULLISH" # CHANGED from BEARISH — only BULLISH+ (BEARISH only if dump)
+  max_alerts_per_run: 10         # LOWERED from 20 — quality over quantity
+  max_alerts_per_coin_per_day: 3 # NEW — hard cap per coin per day
 
 # ── DATA SOURCE SETTINGS ─────────────────────────────────────
 sources:
-  price_primary: "coingecko"     # coingecko | binance | coincap — fallback auto
+  price_primary: "coingecko"
   news_rss_enabled: true
   onchain_enabled: true
-  price_chunk_size: 50           # split 100 coins into chunks of 50 for URL safety
+  price_chunk_size: 50
 
 # ── TRADINGVIEW WEBHOOK ───────────────────────────────────────
 tradingview:
   webhook_enabled: true
   webhook_port: 5000
-  min_quality_stars: 1        # send all TV signals (1★+) — user wants every signal with strength
-  tv_signal_weight: 0.50      # TV signal weight in combined score
-  news_weight_tv: 0.30        # news weight when TV signal present
-  onchain_weight_tv: 0.20     # onchain weight when TV signal present
-  ngrok_enabled: false        # set true if running on laptop with ngrok
+  min_quality_stars: 4           # RAISED from 3 — high conviction only
+  tv_signal_weight: 0.55
+  news_weight_tv: 0.20
+  onchain_weight_tv: 0.25
+  require_python_confirmation: true
+  python_confirmation_min_score: 1.5
+  ngrok_enabled: false
 
 # ── LOGGING ──────────────────────────────────────────────────
 logging:
-  level: "INFO"                  # DEBUG | INFO | WARNING | ERROR
+  level: "INFO"
   save_to_file: true
   log_file: "logs/monitor.log"

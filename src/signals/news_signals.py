@@ -21,10 +21,10 @@ BULLISH = {
 SCORES = {
     "bearish_critical": -3,
     "bearish_moderate": -2,
-    "bearish_mild": -1,
+    "bearish_mild": -0.5,
     "bullish_critical": 3,
     "bullish_moderate": 2,
-    "bullish_mild": 1,
+    "bullish_mild": 0.5,
 }
 
 
@@ -79,11 +79,15 @@ def evaluate_news(news_items, config):
     """
     news_items: list from news_fetcher (deduped, with source_count)
     Returns: {score, details, top_news}
+    Hardened: require min_keyword_matches per headline and min_news_score_to_count magnitude.
     """
     if not news_items:
         return {"score": 0.0, "details": ["no news"], "top_news": []}
     kw = build_keyword_lists(config)
-    min_sources_boost = config.get("news", {}).get("min_sources_to_boost", 2)
+    news_cfg = config.get("news", {})
+    min_sources_boost = news_cfg.get("min_sources_to_boost", 2)
+    min_score_to_count = news_cfg.get("min_news_score_to_count", 2.0)
+    min_matches = news_cfg.get("min_keyword_matches", 2)
 
     total = 0
     details = []
@@ -92,6 +96,9 @@ def evaluate_news(news_items, config):
         text = f"{item.get('title','')} {item.get('summary','')}"
         s, hits = score_text(text, kw)
         if s == 0:
+            continue
+        # NEW: require minimum keyword matches per headline (e.g., single "warning" no longer counts)
+        if len(hits) < min_matches:
             continue
         # boost if multi-source
         if item.get("source_count", 1) >= min_sources_boost:
@@ -106,6 +113,10 @@ def evaluate_news(news_items, config):
 
     for t in top:
         details.append(f"{t['title'][:70]} -> {t['news_score']:+.1f} {t['hits'][:2]}")
+
+    # NEW: require minimum total score magnitude — small noisy scores treated as neutral
+    if abs(total) < min_score_to_count:
+        return {"score": 0.0, "details": [f"news suppressed: total {total:.1f} < {min_score_to_count} threshold"], "top_news": [], "all_scored": scored}
 
     # cap total to -5..+5 for news component before weighting
     total = max(-5, min(5, total))

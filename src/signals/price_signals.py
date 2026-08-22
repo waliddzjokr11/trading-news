@@ -128,30 +128,65 @@ def evaluate_price(coin_id, current_price, current_volume, price_history, config
 
     # RSI
     rsi_val = _rsi(s, period=rsi_period)
-    rsi_signal = None
+    rsi_score = 0.0
     if rsi_val is not None:
         if rsi_val < rsi_oversold:
-            score += 1.5
-            rsi_signal = "oversold"
+            rsi_score = 1.5
             details.append(f"RSI {rsi_val:.1f} oversold (<{rsi_oversold})")
         elif rsi_val > rsi_overbought:
-            score -= 1.5
-            rsi_signal = "overbought"
+            rsi_score = -1.5
             details.append(f"RSI {rsi_val:.1f} overbought (>{rsi_overbought})")
 
     # MACD
     macd_info = _macd(s, fast=p_cfg.get("macd_fast", 12), slow=p_cfg.get("macd_slow", 26), signal=p_cfg.get("macd_signal", 9))
+    macd_score = 0.0
+    macd_rising = False
     if macd_info:
-        if macd_info["direction"] == "bullish" and macd_info["histogram"] > 0:
-            # confirm with small bump
-            score += 0.8
+        hist = macd_info.get("histogram", 0)
+        # determine rising by comparing to previous hist if available
+        try:
+            # recompute hist series for rising check
+            ema_fast = s.ewm(span=p_cfg.get("macd_fast", 12), adjust=False).mean()
+            ema_slow = s.ewm(span=p_cfg.get("macd_slow", 26), adjust=False).mean()
+            macd_line = ema_fast - ema_slow
+            signal_line = macd_line.ewm(span=p_cfg.get("macd_signal", 9), adjust=False).mean()
+            hist_series = macd_line - signal_line
+            if len(hist_series) >= 2:
+                macd_rising = hist_series.iloc[-1] > hist_series.iloc[-2]
+        except:
+            macd_rising = hist > 0
+        if hist > 0 and macd_rising:
+            macd_score = 1.0
             details.append(f"MACD bullish")
-        elif macd_info["direction"] == "bearish" and macd_info["histogram"] < 0:
-            score -= 0.8
+        elif hist < 0 and not macd_rising:
+            macd_score = -1.0
             details.append(f"MACD bearish")
+        # store rising for gate
+        macd_info["rising"] = macd_rising
+
+    # NEW: MACD+RSI agreement gate — require confirmation
+    require_agreement = p_cfg.get("require_macd_rsi_agreement", True)
+    if require_agreement:
+        # For bullish price score, need at least one of RSI or MACD bullish
+        if score > 0 and rsi_score <= 0 and macd_score <= 0:
+            score *= 0.3
+            details.append(f"price unconfirmed (no RSI/MACD) → score penalized 0.3x")
+        elif score < 0 and rsi_score >= 0 and macd_score >= 0:
+            score *= 0.3
+            details.append(f"price unconfirmed (no RSI/MACD) → score penalized 0.3x")
+        else:
+            score += rsi_score + macd_score
+    else:
+        score += rsi_score + macd_score
 
     # cap
     score = max(-5, min(5, score))
+    # compute volume vs avg for gate (also for quality gate)
+    vol_vs_avg = 1.0
+    if len(volumes) >= 6:
+        avg_vol = sum(volumes[-6:-1]) / max(1, len(volumes[-6:-1]))
+        if avg_vol > 0 and current_volume:
+            vol_vs_avg = current_volume / avg_vol
     return {
         "score": float(score),
         "details": details,
@@ -159,4 +194,7 @@ def evaluate_price(coin_id, current_price, current_volume, price_history, config
         "macd": macd_info,
         "short_lookback": short_lookback,
         "medium_lookback": medium_lookback,
+        "volume_vs_avg": float(vol_vs_avg),
+        "rsi_score": float(rsi_score),
+        "macd_score": float(macd_score),
     }

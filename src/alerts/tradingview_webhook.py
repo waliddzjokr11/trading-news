@@ -205,6 +205,54 @@ def should_alert_tv(tv_signal, combined, config, state_manager, coin_id):
     return True, f"stars {stars} label {label} {reason}"
 
 
+def should_send_tv_alert(tv_signal: dict, coin_id: str, config: dict, state: dict) -> tuple[bool, str]:
+    """
+    Returns (should_send, reason)
+    Requires Python-side confirmation of TV signal before alerting.
+    """
+    tv_cfg = config.get("tradingview", {})
+    stars = tv_signal.get("quality_stars", 0)
+    try:
+        stars = int(stars)
+    except:
+        stars = 0
+    min_stars = tv_cfg.get("min_quality_stars", 4)
+    if stars < min_stars:
+        return False, f"Quality {stars}★ below minimum {min_stars}★"
+    if tv_cfg.get("require_python_confirmation", True):
+        coin_state = state.get("price_history", {}).get(coin_id, [])
+        if len(coin_state) < 2:
+            return False, "Insufficient price history for confirmation"
+        latest = coin_state[-1]
+        python_score = latest.get("last_price_score", 0)
+        # if not stored, try to compute fresh via price_signals if history available
+        if python_score == 0 and len(coin_state) >= 2:
+            try:
+                from src.signals.price_signals import evaluate_price
+                # need price/volume from latest
+                price = latest.get("price", 0)
+                vol = latest.get("volume", 0)
+                hist = coin_state[:-1]
+                # quick evaluate with current config
+                res = evaluate_price(coin_id, price, vol, hist, config)
+                python_score = res.get("score", 0)
+            except Exception:
+                python_score = 0
+        min_confirm = tv_cfg.get("python_confirmation_min_score", 1.5)
+        tv_direction = 1 if str(tv_signal.get("signal","")).upper() in ("BUY", "STRONG_BUY") else -1
+        # handle SELL variations
+        if str(tv_signal.get("signal","")).upper() in ("SELL","STRONG_SELL","DOWN"):
+            tv_direction = -1
+        python_direction = 1 if python_score > 0 else -1 if python_score < 0 else 0
+        if python_direction == 0:
+            return False, f"Python score {python_score:.2f} neutral, need confirmation"
+        if tv_direction != python_direction:
+            return False, f"TV says {tv_signal.get('signal')} but Python score is {python_score:.2f} (disagrees)"
+        if abs(python_score) < min_confirm:
+            return False, f"Python score {python_score:.2f} too weak to confirm TV signal"
+    return True, "All checks passed"
+
+
 def update_performance(state_manager, coin_id, tv_signal, combined, action_taken):
     """Append to tv_signals history, update performance stub (winrate tracked later by price resolver)."""
     entry = {

@@ -23,7 +23,7 @@ from fetchers.onchain_fetcher import fetch_onchain, aggregate_onchain_score
 from signals.price_signals import evaluate_price
 from signals.news_signals import evaluate_news
 from signals.onchain_signals import evaluate_onchain
-from signals.signal_engine import evaluate as engine_evaluate, meets_min_signal
+from signals.signal_engine import evaluate as engine_evaluate, meets_min_signal, passes_quality_gate
 from alerts.telegram_sender import send_telegram, format_telegram
 from alerts.email_sender import send_email, build_html
 from dashboard.generate_dashboard import generate_dashboard
@@ -283,6 +283,46 @@ def main():
         sig["poll_interval"] = cfg.get("poll_interval_minutes", 30)
         # attach rsi/macd already
         signals[coin] = sig
+
+        # Quality gate (winrate fix) — must pass before any alert
+        try:
+            # build price_data for gate: ema200 + volume
+            import pandas as _pd
+            try:
+                ps = _pd.Series([h["price"] for h in hist_for_eval] + [price], dtype=float)
+                ema200_val = float(ps.ewm(span=200, adjust=False).mean().iloc[-1]) if len(ps) >= 20 else 0
+            except:
+                ema200_val = 0
+            vol_vs_avg = price_res.get("volume_vs_avg", 1.0)
+            price_data_gate = {"price": float(price) if price else 0, "ema200": float(ema200_val), "volume_vs_avg": float(vol_vs_avg)}
+            # For scheduled runs, tv_data is None (no TV signal); gate still checks composite, ema, volume
+            passes, reasons = passes_quality_gate(sig["signal"], sig["composite_score"], None, price_data_gate, cfg)
+            if not passes:
+                logger.info(f"[{coin}] SUPPRESSED by quality gate: {reasons}")
+                # track suppressed for dashboard/state
+                perf = state.state.setdefault("performance", {})
+                perf["suppressed"] = perf.get("suppressed", 0) + 1
+                # log suppressed with reasons for dashboard tuning feedback
+                state.state.setdefault("alert_history", []).append({
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "coin": coin,
+                    "signal": sig["signal"],
+                    "score": sig["composite_score"],
+                    "action": "SUPPRESSED",
+                    "reasons": reasons,
+                    "tv_stars": None
+                })
+                continue
+            # per-coin per day cap
+            max_per_day = cfg.get("alerts", {}).get("max_alerts_per_coin_per_day", 3)
+            if max_per_day:
+                today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                cnt_today = sum(1 for a in state.state.get("alert_history", []) if a.get("coin") == coin and str(a.get("timestamp",""))[:10] == today and a.get("action") != "SUPPRESSED")
+                if cnt_today >= max_per_day:
+                    logger.info(f"[{coin}] SUPPRESSED max per day {cnt_today}/{max_per_day}")
+                    continue
+        except Exception as e:
+            logger.warning(f"Quality gate check fail for {coin}: {e}")
 
         # decide alert
         if meets_min_signal(sig["signal"], min_signal):

@@ -160,11 +160,31 @@ mtfStrongBull = bullCount8 >= 6
 mtfStrongBear = bullCount8 <= 2  // 6/8 bear = 2/8 bull
 
 // ========================================
-// === SIGNAL QUALITY SCORE (0-5 stars) ===
+// === SIGNAL QUALITY SCORE (0-5 stars) — STRICT (winrate fix) ===
 // ========================================
-qualityBuy  = (macdBull?1:0) + (trendBull?1:0) + (hmaBull?1:0) + (volAbove?1:0) + (mtfBullish?1:0)
-qualitySell = (macdBear?1:0) + (trendBear?1:0) + (hmaBear?1:0) + (volAbove?1:0) + ((bullCount8 <= 3)?1:0)
-quality = buySignal or strongBuy ? qualityBuy : sellSignal or strongSell ? qualitySell : 0
+bull = buySignal or strongBuy
+bear = sellSignal or strongSell
+rsi_qual = ta.rsi(close, 14)
+// Star 1: MACD strongly aligned (histogram AND direction, 3 bars)
+macdStrongBull = hist > 0 and hist > hist[1] and hist > hist[2]
+macdStrongBear = hist < 0 and hist < hist[1] and hist < hist[2]
+star_macd = (bull and macdStrongBull) or (bear and macdStrongBear) ? 1 : 0
+// Star 2: Full trend alignment (EMA150 > EMA250 AND HMA trending 2 bars)
+trendFullBull = ema150 > ema250 and hma55 > hma55[1] and hma55[1] > hma55[2]
+trendFullBear = ema150 < ema250 and hma55 < hma55[1] and hma55[1] < hma55[2]
+star_trend = (bull and trendFullBull) or (bear and trendFullBear) ? 1 : 0
+// Star 3: RSI in confirming zone (NOT overbought on buy, NOT oversold on sell)
+star_rsi = (bull and rsi_qual > 45 and rsi_qual < 68) or (bear and rsi_qual < 55 and rsi_qual > 32) ? 1 : 0
+// Star 4: Volume significantly above average (accelerating, not just >0)
+volAccelerating = vosc > vosc[1] and vosc[1] > vosc[2]
+volDecelerating  = vosc < vosc[1] and vosc[1] < vosc[2]
+star_volume = (bull and volAccelerating) or (bear and volDecelerating) ? 1 : 0
+// Star 5: MTF score >= 6/8 (was 5/8 — raised bar)
+mtfCount = (TF1Bull?1:0) + (TF5Bull?1:0) + (TF15Bull?1:0) + (TF30Bull?1:0) + (TF1HBull?1:0) + (TF4HBull?1:0) + (TFDBull?1:0) + (TF12HBull?1:0)
+star_mtf = (bull and mtfCount >= 6) or (bear and (8 - mtfCount) >= 6) ? 1 : 0
+qualityBuy  = star_macd + star_trend + star_rsi + star_volume + star_mtf
+qualitySell = star_macd + star_trend + star_rsi + star_volume + star_mtf
+quality = bull ? qualityBuy : bear ? qualitySell : 0
 starsStr(ql) =>
     q = math.max(0, math.min(5, ql))
     filled = "★"
@@ -173,12 +193,14 @@ starsStr(ql) =>
     for i=0 to 4
         res += i < q ? filled : empty
     res
-
-trendCheck = trendBull ? "✓ Trend" : "✗ Trend"
-macdCheck  = (buySignal and macdBull) or (sellSignal and macdBear) ? "✓ MACD" : "✗ MACD"
-volCheck   = volAbove ? "✓ Vol" : "✗ Vol"
-mtfCheck   = mtfBullish ? "✓ MTF" : "✗ MTF"
-momCheck   = hmaBull or hmaBear ? "✓ Mom" : "✗ Mom"
+// only show label when quality >=3 — reduces noise dramatically
+showBuyLabel  = showSignals and bull and quality >= 3
+showSellLabel = showSignals and bear and quality >= 3
+trendCheck = star_trend == 1 ? "✓ Trend" : "✗ Trend"
+macdCheck  = star_macd == 1 ? "✓ MACD" : "✗ MACD"
+volCheck   = star_volume == 1 ? "✓ Vol" : "✗ Vol"
+mtfCheck   = star_mtf == 1 ? "✓ MTF" : "✗ MTF"
+momCheck   = star_rsi == 1 ? "✓ RSI" : "✗ RSI"
 qualityDetail = trendCheck + "  " + macdCheck + "  " + volCheck + "  " + mtfCheck + "  " + momCheck
 
 // ========================================
@@ -332,14 +354,14 @@ plot(showTP and tradeOpen ? stopPrice : na, "Stop", color=color.new(color.red, 0
 plot(st, "Supertrend", color=stDir==1?color.green:color.red, linewidth=2)
 
 // ========================================
-// === LABELS with Quality Stars ===
+// === LABELS with Quality Stars — STRICT (≥3★ only) ===
 // ========================================
-if showSignals and (buySignal or strongBuy)
+if showBuyLabel
     q = qualityBuy
     lbl = (strongBuy ? "STRONG BUY" : "BUY") + "  " + starsStr(q)
     detail = showQuality ? "\n" + qualityDetail : ""
     label.new(bar_index, low, lbl + detail, style=label.style_label_up, color=color.new(color.green, 0), textcolor=color.white, size=size.tiny)
-if showSignals and (sellSignal or strongSell)
+if showSellLabel
     q = qualitySell
     lbl = (strongSell ? "STRONG SELL" : "SELL") + "  " + starsStr(q)
     detail = showQuality ? "\n" + qualityDetail : ""
@@ -501,11 +523,11 @@ tp2HitCond = tradeOpen and tp2Hit and not tp2Hit[1]
 tp3HitCond = tradeOpen and tp3Hit and not tp3Hit[1]
 slHitCond  = (total_losses > total_losses[1]) // loss incremented this bar
 
-// Alertconditions (TradingView will show these in Create Alert dropdown)
-alertcondition(buySignal or pullbackBuy, title="Buy Signal", message=buyJSON)
-alertcondition(strongBuy, title="Strong Buy Signal", message=strongBuyJSON)
-alertcondition(sellSignal or pullbackSell, title="Sell Signal", message=sellJSON)
-alertcondition(strongSell, title="Strong Sell Signal", message=strongSellJSON)
+// Alertconditions — HARDENED: generic now requires ≥3★, high quality ≥4★ (winrate fix)
+alertcondition((buySignal or pullbackBuy) and qualityBuy >= 3, title="Buy Signal (≥3★)", message=buyJSON)
+alertcondition(strongBuy and qualityBuy >= 3, title="Strong Buy Signal (≥3★)", message=strongBuyJSON)
+alertcondition((sellSignal or pullbackSell) and qualitySell >= 3, title="Sell Signal (≥3★)", message=sellJSON)
+alertcondition(strongSell and qualitySell >= 3, title="Strong Sell Signal (≥3★)", message=strongSellJSON)
 alertcondition(highQBuyCond, title="High Quality Buy (≥4★)", message=highQBuyJSON)
 alertcondition(highQSellCond, title="High Quality Sell (≥4★)", message=highQSellJSON)
 alertcondition(tp1HitCond, title="TP1 Hit", message=tp1JSON)

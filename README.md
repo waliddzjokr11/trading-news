@@ -94,6 +94,13 @@ Apply indicator to chart, set timeframe 15m (INTRADAY) for scalps.
 
 ### Webhook Bridge — TradingView → Python
 
+> ⚠️ SECURITY: Generate your own secret with:
+> `python -c "import secrets; print(secrets.token_urlsafe(32))"`
+> Never commit the real value. Store it only in:
+> - GitHub Secrets → `WEBHOOK_SECRET`
+> - Render.com env vars → `WEBHOOK_SECRET`
+> - Your local `.env` file (already in `.gitignore`)
+
 Two layers watch market: TV technicals + Python news/on-chain → same Telegram pipeline.
 
 ```
@@ -124,7 +131,7 @@ In TV: Create Alert → Condition: `KDRX v2 - High Quality Buy (≥4★)` → Op
 **Option A — Laptop + ngrok (quick test):**
 ```bash
 pip install flask gunicorn
-WEBHOOK_SECRET=gBFKnf1yyHgcPIi5mU-cZNiv9SIWinhL python src/webhook_server.py  # :5000
+WEBHOOK_SECRET=your_webhook_secret_here python src/webhook_server.py  # :5000
 # other terminal:
 ngrok http 5000  # free tier → https://abc123.ngrok.io
 # TV Webhook URL = https://abc123.ngrok.io/webhook/tradingview + header X-TV-Secret
@@ -132,14 +139,14 @@ ngrok http 5000  # free tier → https://abc123.ngrok.io
 
 **Option B — Render.com 24/7 (recommended):**
 - Push `render.yaml` is in repo → Render Dashboard → New → Blueprint → connect `trading-news` → Apply
-- Add env vars in Render: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `GMAIL_*`, `WEBHOOK_SECRET` (= same as `.env` `gBFKnf1yyHgcPIi5mU-cZNiv9SIWinhL`)
+- Add env vars in Render: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`, `GMAIL_*`, `WEBHOOK_SECRET` (= same as `.env` `your_webhook_secret_here`)
 - Deploy → URL `https://crypto-alert-webhook.onrender.com` → health `GET /health` 200
 - TV Webhook URL = `https://crypto-alert-webhook.onrender.com/webhook/tradingview`
 - Free tier spins down after 15m; `monitor.yml` keep-alive pings `/health` if `WEBHOOK_URL` secret set
 
 **Dashboard upgrade:** `generate_dashboard.py` now shows TradingView Signal Feed (last 20: Time Coin Signal Quality TV/News/Combined Action) + Winrate Summary panel `performance` from `state.json`.
 
-Add to GitHub Secrets: `WEBHOOK_SECRET=gBFKnf1yyHgcPIi5mU-cZNiv9SIWinhL` and optionally `WEBHOOK_URL=https://YOUR_RENDER.onrender.com` for keep-alive.
+Add to GitHub Secrets: `WEBHOOK_SECRET=your_webhook_secret_here` and optionally `WEBHOOK_URL=https://YOUR_RENDER.onrender.com` for keep-alive.
 
 ## Troubleshooting
 

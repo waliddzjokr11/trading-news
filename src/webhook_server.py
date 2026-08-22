@@ -31,7 +31,7 @@ except Exception:
 from state.state_manager import StateManager
 from alerts.telegram_sender import send_telegram, format_telegram
 from alerts.email_sender import send_email, build_html
-from alerts.tradingview_webhook import normalize_coin, compute_tv_combined_score, should_alert_tv, update_performance
+from alerts.tradingview_webhook import normalize_coin, compute_tv_combined_score, should_alert_tv, should_send_tv_alert, update_performance
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -107,8 +107,13 @@ def tradingview_webhook():
     combined = compute_tv_combined_score(data, coin_id, cfg, state_manager=st)
     logger.info(f"Combined {coin_id}: tv {combined['tv_score']} news {combined['news_score']} onchain {combined['onchain_score']} => {combined['composite_score']} {combined['signal_label']}")
 
-    # Should alert?
-    should, reason = should_alert_tv(data, combined, cfg, st, coin_id)
+    # Should alert? Check Python confirmation gate first (winrate fix)
+    ok_py, reason_py = should_send_tv_alert(data, coin_id, cfg, st.state)
+    if not ok_py:
+        logger.info(f"TV alert suppressed by Python confirmation: {reason_py}")
+        should, reason = False, reason_py
+    else:
+        should, reason = should_alert_tv(data, combined, cfg, st, coin_id)
     action_taken = "pending"
     tg_ok = False
     email_ok = False

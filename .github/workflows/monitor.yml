@@ -8,7 +8,7 @@ on:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 12        # 200 coins need ~2-3 min (4 chunks + rate limits)
+    timeout-minutes: 8        # kills job if hangs — saves free minutes (200 coins ~3 min, 8 is safe)
     permissions:
       contents: write
 
@@ -37,13 +37,17 @@ jobs:
           WEBHOOK_SECRET: ${{ secrets.WEBHOOK_SECRET }}
         run: python src/main.py
 
-      - name: Keep-alive webhook (Render free tier)
+      - name: Keep-alive ping to Render webhook server
+        if: env.WEBHOOK_URL != ''
+        env:
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
         run: |
-          if [ -n "${{ secrets.WEBHOOK_URL }}" ]; then
-            echo "Pinging webhook health..."
-            curl -fsS "${{ secrets.WEBHOOK_URL }}/health" || echo "keep-alive failed (webhook may be starting)"
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            --max-time 10 "${WEBHOOK_URL}/health" || echo "000")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Webhook server alive (HTTP 200)"
           else
-            echo "No WEBHOOK_URL secret — skipping keep-alive"
+            echo "⚠️ Webhook server returned HTTP $STATUS (may be cold-starting)"
           fi
 
       - name: Validate state before commit
@@ -63,7 +67,7 @@ jobs:
         run: |
           git config user.name "crypto-monitor-bot"
           git config user.email "bot@github-actions"
-          git add state.json dashboard/index.html docs/index.html dashboard/.nojekyll docs/.nojekyll 2>/dev/null || git add state.json dashboard/index.html docs/index.html
+          git add state.json dashboard/index.html docs/index.html logs/ 2>/dev/null || git add state.json dashboard/index.html docs/index.html
           git diff --staged --quiet && echo "No changes to commit" && exit 0
           git pull --rebase origin main || true
           git commit -m "chore: update state [skip ci]"

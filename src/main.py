@@ -346,15 +346,22 @@ def main():
         except Exception as e:
             logger.warning(f"Quality gate check fail for {coin}: {e}")
 
-        # decide alert
+        # decide alert with priority tiering (important vs normal)
+        # Important: STRONG_BUY/DUMP, or composite >=3, or news critical, or TV 5★
+        is_important = (
+            sig["signal"] in ("STRONG_BUY", "DUMP_WARNING") or
+            abs(sig["composite_score"]) >= 3.0 or
+            abs(sig.get("news_score", 0)) >= 3 or
+            sig.get("stars", 0) >= 4
+        )
+        # attach priority for sorting later
+        sig["_priority"] = 0 if is_important else 1
+        sig["_is_important"] = is_important
         if meets_min_signal(sig["signal"], min_signal):
             should, reason = state.should_alert(coin, sig["signal"], cooldown_minutes=cooldown)
             if should:
-                # cap per run
-                if len(alerts_to_send) < max_alerts:
-                    alerts_to_send.append((coin, pdata, sig, reason))
-                else:
-                    logger.info(f"Max alerts cap {max_alerts} reached — skip {coin}")
+                # don't cap yet — collect all, then sort by priority and cap
+                alerts_to_send.append((coin, pdata, sig, reason))
             else:
                 logger.info(f"Cooldown skip {coin} {sig['signal']} ({reason})")
         else:
@@ -366,6 +373,49 @@ def main():
             if h:
                 state.mark_seen_news(h)
 
+    # Priority sort: important (high conviction) first, then by absolute composite
+    alerts_to_send.sort(key=lambda x: (x[2].get("_priority", 1), -abs(x[2].get("composite_score", 0))))
+    # Enforce cap with tiering: important ASAP, normal delayed for limit
+    if len(alerts_to_send) > max_alerts:
+        immediate = alerts_to_send[:max_alerts]
+        delayed = alerts_to_send[max_alerts:]
+        # Count important in immediate
+        imp_cnt = sum(1 for _,_,s,_ in immediate if s.get("_is_important"))
+        logger.info(f"Priority tier: {imp_cnt} important immediate, {len(delayed)} normal queued (delayed for limit, max {max_alerts}/run)")
+        # queue delayed for next run (will be retried, price may be stale but still useful for news)
+        state.state.setdefault("delayed_queue", []).extend([
+            {"coin": c, "reason": r, "sig": s, "pdata": p, "queued_at": datetime.now(timezone.utc).isoformat()}
+            for c, p, s, r in delayed
+        ])
+        if len(state.state["delayed_queue"]) > 50:
+            state.state["delayed_queue"] = state.state["delayed_queue"][-50:]
+        alerts_to_send = immediate
+    # Also try to flush previously delayed queue (normal) with extra delay, up to 5 per run
+    delayed_queue = state.state.get("delayed_queue", [])
+    if delayed_queue and len(alerts_to_send) < max_alerts:
+        # take up to 3 delayed that are still fresh (<4h) and not duplicate of current alerts
+        now = datetime.now(timezone.utc)
+        fresh = []
+        for item in list(delayed_queue):
+            try:
+                qa = datetime.fromisoformat(item.get("queued_at","").replace("Z","+00:00"))
+                if (now - qa).total_seconds() > 4*3600:
+                    continue
+            except:
+                pass
+            # not already in alerts_to_send
+            if any(item["coin"] == c for c,_,_,_ in alerts_to_send):
+                continue
+            fresh.append(item)
+            if len(fresh) >= 3:
+                break
+        if fresh:
+            logger.info(f"Flushing {len(fresh)} delayed normal alerts with throttling")
+            for item in fresh:
+                alerts_to_send.append((item["coin"], item["pdata"], item["sig"], item["reason"] + " (delayed)"))
+                delayed_queue.remove(item)
+            state.state["delayed_queue"] = delayed_queue
+
     # --- Alert sending ---
     sent_count = 0
     email_enabled = cfg.get("alerts", {}).get("email_enabled", True)
@@ -376,7 +426,10 @@ def main():
     tg_token = os.environ.get("TELEGRAM_BOT_TOKEN")
     tg_chat = os.environ.get("TELEGRAM_CHAT_ID")
 
-    for coin, pdata, sig, reason in alerts_to_send:
+    for idx, (coin, pdata, sig, reason) in enumerate(alerts_to_send):
+        # Throttle normal (non-important) to respect Telegram/Gmail limits — important already ASAP
+        if not sig.get("_is_important", False):
+            time.sleep(1.5)
         price = pdata.get("price", 0)
         ch = pdata.get("change_24h", 0)
         vol = pdata.get("volume", 0)

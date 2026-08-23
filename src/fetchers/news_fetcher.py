@@ -9,6 +9,16 @@ import requests
 import feedparser
 from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
+try:
+    from utils.rate_limiter import coingecko_limiter
+    # reuse coingecko limiter for cryptopanic (also 30/min) — conservative
+    _news_limiter = coingecko_limiter
+except ImportError:
+    try:
+        from src.utils.rate_limiter import coingecko_limiter
+        _news_limiter = coingecko_limiter
+    except:
+        _news_limiter = None
 
 logger = logging.getLogger(__name__)
 
@@ -56,6 +66,8 @@ def fetch_cryptopanic(api_key, currencies=None, filter_hours=4):
             # currencies comma like BTC,ETH — but spec uses CoinGecko IDs, we pass common symbols
             # limit to first 10 to avoid URL length
             params["currencies"] = ",".join(currencies[:10])
+        if _news_limiter:
+            _news_limiter.wait()
         resp = requests.get("https://cryptopanic.com/api/v1/posts/", params=params, headers=HEADERS, timeout=15)
         if resp.status_code == 429:
             logger.warning("CryptoPanic 429")

@@ -8,7 +8,7 @@ on:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 8        # kills job if hangs — saves free minutes
+    timeout-minutes: 12        # 200 coins need ~2-3 min (4 chunks + rate limits)
     permissions:
       contents: write
 
@@ -63,7 +63,7 @@ jobs:
         run: |
           git config user.name "crypto-monitor-bot"
           git config user.email "bot@github-actions"
-          git add state.json dashboard/index.html logs/
+          git add state.json dashboard/index.html docs/index.html dashboard/.nojekyll docs/.nojekyll 2>/dev/null || git add state.json dashboard/index.html docs/index.html
           git diff --staged --quiet && echo "No changes to commit" && exit 0
           git pull --rebase origin main || true
           git commit -m "chore: update state [skip ci]"

@@ -5,8 +5,32 @@ Never crashes; returns dict coin_id -> {price, volume, change_24h, source}
 import time
 import requests
 import logging
+try:
+    from utils.rate_limiter import coingecko_limiter, binance_limiter, coincap_limiter
+except ImportError:
+    from src.utils.rate_limiter import coingecko_limiter, binance_limiter, coincap_limiter
 
 logger = logging.getLogger(__name__)
+
+
+def fetch_with_retry(url, params=None, headers=None, timeout=15, limiter=None, max_retries=3):
+    for attempt in range(max_retries):
+        try:
+            if limiter:
+                limiter.wait()
+            r = requests.get(url, params=params, headers=headers, timeout=timeout)
+            if r.status_code == 429:
+                retry_after = int(r.headers.get("Retry-After", 60 * (2 ** attempt)))
+                logger.warning(f"Rate limited 429. Waiting {retry_after}s retry {attempt+1}/{max_retries}")
+                time.sleep(min(retry_after, 60 * (2 ** attempt)))
+                continue
+            r.raise_for_status()
+            return r
+        except requests.exceptions.RequestException as e:
+            wait = 5 * (2 ** attempt)
+            logger.warning(f"Request failed ({e}). Retry {attempt+1}/{max_retries} in {wait}s")
+            time.sleep(wait)
+    return None
 
 # CoinGecko ID -> Binance symbol map (for fallback). Only majors have Binance USDT pairs.
 COINGECKO_TO_BINANCE = {
@@ -39,6 +63,106 @@ COINGECKO_TO_BINANCE = {
     "astar": "ASTRUSDT", "dogecoin": "DOGEUSDT", "worldcoin-wld": "WLDUSDT", "worldcoin": "WLDUSDT",
     "jito-governance-token": "JTOUSDT", "jito": "JTOUSDT", "waves": "WAVESUSDT", "wavestech": "WAVESUSDT",
     "manta-network": "MANTAUSDT", "toncoin": "TONUSDT",
+    'ssv-network': 'SSVUSDT',
+    'rocket-pool': 'RPLUSDT',
+    'threshold-network-token': 'TUSDT',
+    'aurora': 'AURORAUSDT',
+    'moonriver': 'MOVRUSDT',
+    'secret': 'SCRTUSDT',
+    'ankr': 'ANKRUSDT',
+    'storj': 'STORJUSDT',
+    'flux': 'FLUXUSDT',
+    'kadena': 'KDAUSDT',
+    'nervos-network': 'CKBUSDT',
+    'iotex': 'IOTXUSDT',
+    'ontology': 'ONTUSDT',
+    'icon': 'ICXUSDT',
+    'origin-protocol': 'OGNUSDT',
+    'centrifuge': 'CFGUSDT',
+    'coti': 'COTIUSDT',
+    'celer-network': 'CELRUSDT',
+    'holo': 'HOTUSDT',
+    'dent': 'DENTUSDT',
+    'wink': 'WINUSDT',
+    'bittorrent': 'BTTUSDT',
+    'just': 'JSTUSDT',
+    'sushi': 'SUSHIUSDT',
+    'compound': 'COMPUSDT',
+    'maker': 'MKRUSDT',
+    'aave': 'AAVEUSDT',
+    'yearn-finance': 'YFIUSDT',
+    'balancer': 'BALUSDT',
+    'synthetix': 'SNXUSDT',
+    'gmx': 'GMXUSDT',
+    'gains-network': 'GNSUSDT',
+    'perpetual-protocol': 'PERPUSDT',
+    'sushiswap': 'SUSHIUSDT',
+    'pancakeswap-token': 'CAKEUSDT',
+    'quickswap': 'QUICKUSDT',
+    'trader-joe': 'JOEUSDT',
+    'spookyswap': 'BOOUSDT',
+    'convex-finance': 'CVXUSDT',
+    'frax-share': 'FXSUSDT',
+    'frax': 'FRAXUSDT',
+    'olympus': 'OHMUSDT',
+    'lido-dao': 'LDOUSDT',
+    'staked-ether': 'STETHUSDT',
+    'weth': 'WETHUSDT',
+    'wsteth': 'WSTETHUSDT',
+    'cbeth': 'CBETHUSDT',
+    'reth': 'RETHUSDT',
+    'mask-network': 'MASKUSDT',
+    'audius': 'AUDIOUSDT',
+    'livepeer': 'LPTUSDT',
+    'ens': 'ENSUSDT',
+    'gitcoin': 'GTCUSDT',
+    'bancor': 'BNTUSDT',
+    'loopring': 'LRCUSDT',
+    'numeraire': 'NMRUSDT',
+    'orchid': 'OXTUSDT',
+    'covalent': 'CQTUSDT',
+    'alchemy-pay': 'ACHUSDT',
+    'amp': 'AMPUSDT',
+    'arpa': 'ARPAUSDT',
+    'clover-finance': 'CLVUSDT',
+    'dodo': 'DODOUSDT',
+    'dego-finance': 'DEGOUSDT',
+    'alpaca-finance': 'ALPACAUSDT',
+    'alpha-finance': 'ALPHAUSDT',
+    'beta-finance': 'BETAUSDT',
+    'beefy-finance': 'BIFIUSDT',
+    'badger-dao': 'BADGERUSDT',
+    'cream-finance': 'CREAMUSDT',
+    'keep3r-v1': 'KP3RUSDT',
+    'requiem': 'REQUIEMUSDT',
+    'aragon': 'ANTUSDT',
+    'reef': 'REEFUSDT',
+    'radicle': 'RADUSDT',
+    'district0x': 'DNTUSDT',
+    'funtoken': 'FUNUSDT',
+    'everipedia': 'IQUSDT',
+    'serum': 'SRMUSDT',
+    'raydium': 'RAYUSDT',
+    'orca': 'ORCAUSDT',
+    'stepn': 'GMTUSDT',
+    'green-satoshi-token': 'GSTUSDT',
+    'waltonchain': 'WTCUSDT',
+    'verge': 'XVGUSDT',
+    'vertcoin': 'VTCUSDT',
+    'viacoin': 'VIAUSDT',
+    'syscoin': 'SYSUSDT',
+    'nav-coin': 'NAVUSDT',
+    'pivx': 'PIVXUSDT',
+    'firo': 'FIROUSDT',
+    'horizen': 'ZENUSDT',
+    'zcash': 'ZECUSDT',
+    'monero': 'XMRUSDT',
+    'dash': 'DASHUSDT',
+    'decred': 'DCRUSDT',
+    'komodo': 'KMDUSDT',
+    'ark': 'ARKUSDT',
+    'stratis': 'STRAXUSDT',
+    'groestlcoin': 'GRSUSDT',
 }
 
 COINGECKO_URL = "https://api.coingecko.com/api/v3/coins/markets"
@@ -81,9 +205,11 @@ def fetch_coingecko(ids, chunk_size=50):
                 "per_page": len(chunk),
                 "page": 1,
             }
+            coingecko_limiter.wait()
             resp = requests.get(COINGECKO_URL, params=params, headers=HEADERS, timeout=15)
             if _handle_429(resp):
                 # retry once
+                coingecko_limiter.wait()
                 resp = requests.get(COINGECKO_URL, params=params, headers=HEADERS, timeout=15)
             if resp.status_code != 200:
                 logger.warning(f"CoinGecko chunk {idx//chunk_size+1} failed {resp.status_code}: {resp.text[:200]}")
@@ -119,6 +245,7 @@ def fetch_binance(ids):
         import json as _json
         # Try bulk endpoint first
         try:
+            binance_limiter.wait()
             resp = requests.get(BINANCE_URL, params={"symbols": _json.dumps(symbols)}, headers=HEADERS, timeout=15)
             if resp.status_code == 200:
                 data = resp.json()
@@ -144,6 +271,7 @@ def fetch_binance(ids):
             if not sym:
                 continue
             try:
+                binance_limiter.wait()
                 r = requests.get(BINANCE_URL, params={"symbol": sym}, headers=HEADERS, timeout=10)
                 if r.status_code == 200:
                     j = r.json()
@@ -167,8 +295,10 @@ def fetch_coincap(ids):
     results = {}
     try:
         # CoinCap id mapping differs (e.g., bitcoin -> bitcoin). Try direct.
+        coincap_limiter.wait()
         resp = requests.get(COINCAP_URL, params={"limit": 2000}, headers=HEADERS, timeout=15)
         if _handle_429(resp):
+            coincap_limiter.wait()
             resp = requests.get(COINCAP_URL, params={"limit": 2000}, headers=HEADERS, timeout=15)
         if resp.status_code != 200:
             logger.warning(f"CoinCap failed {resp.status_code}")

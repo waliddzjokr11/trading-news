@@ -7,6 +7,15 @@ import requests
 import feedparser
 from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
+try:
+    from utils.rate_limiter import coingecko_limiter
+    _onchain_limiter = coingecko_limiter
+except ImportError:
+    try:
+        from src.utils.rate_limiter import coingecko_limiter
+        _onchain_limiter = coingecko_limiter
+    except:
+        _onchain_limiter = None
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +71,8 @@ def fetch_whale_alert(max_age_hours=4):
             logger.warning(f"Whale Alert RSS parse issue: {feed.bozo_exception}")
             # fallback to requests text
             try:
+                if _onchain_limiter:
+                    _onchain_limiter.wait()
                 r = requests.get(WHALE_RSS, timeout=10, headers={"User-Agent": "crypto-alert-system/1.0"})
                 if r.status_code == 200:
                     feed = feedparser.parse(r.text)

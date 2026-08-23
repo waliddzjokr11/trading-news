@@ -26,5 +26,5 @@ EMPTY_STATE = {
 with open("state.json", "w") as f:
     json.dump(EMPTY_STATE, f, indent=2)
 
-print("✅ state.json reset to empty template")
+print("[OK] state.json reset to empty template")
 print("Run 'python src/main.py --dry-run' to verify setup")

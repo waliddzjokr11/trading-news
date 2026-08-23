@@ -228,17 +228,17 @@ poll_interval_minutes: 30
 # ── PRICE SIGNAL THRESHOLDS ─────────────────────────────────
 price:
   short_window_minutes: 15
-  short_change_pct: 5.0          # RAISED from 3.0 → needs bigger move
+  short_change_pct: 2.5          # balanced: 5.0 gave 0/day → 2.5 restores some price signals
   medium_window_minutes: 60
-  medium_change_pct: 8.0         # RAISED from 6.0
-  volume_multiplier: 3.5         # RAISED from 2.5 → only real spikes
-  rsi_oversold: 28               # TIGHTENED from 30
-  rsi_overbought: 72             # TIGHTENED from 70
+  medium_change_pct: 4.5
+  volume_multiplier: 2.2
+  rsi_oversold: 30
+  rsi_overbought: 70
   rsi_period: 14
   macd_fast: 12
   macd_slow: 26
   macd_signal: 9
-  require_macd_rsi_agreement: true
+  require_macd_rsi_agreement: false
   min_bars_between_signals: 4
 
 # ── SIGNAL WEIGHTS ────────────────────────────────────────────
@@ -249,38 +249,38 @@ weights:
 
 # ── SIGNAL SCORE THRESHOLDS ──────────────────────────────────
 signal_thresholds:
-  strong_buy: 4.5    # RAISED from 4.0
-  bullish: 2.5       # RAISED from 1.5
-  neutral_high: 1.5
-  neutral_low: -1.5
-  bearish: -2.5      # TIGHTENED from -1.5
-  dump_warning: -4.5 # TIGHTENED from -4.0
+  strong_buy: 3.5
+  bullish: 1.2       # FIX: 2.5 gave 0/day → 1.2 restores flow but still >1.5? actually 1.2 <1.5, so more BULLISH
+  neutral_high: 1.2
+  neutral_low: -1.2
+  bearish: -1.2
+  dump_warning: -3.5
 
 # ── ALERT QUALITY GATE ───────────────────────────────────────
 alert_quality_gate:
   enabled: true
   buy_requires:
-    min_composite_score: 2.5
+    min_composite_score: 0.4      # FIX: 0.8 still 0/day on flat → 0.4 allows 1-2 high-quality / day
     min_tv_quality_stars: 4
     min_mtf_confluence: 5
     price_above_ema200: true
     macd_bullish: true
-    volume_above_average: true
+    volume_above_average: false
   sell_requires:
-    min_composite_score: -2.5
+    min_composite_score: -0.4
     min_tv_quality_stars: 4
     min_mtf_confluence: 5
     price_below_ema200: true
     macd_bearish: true
-    volume_above_average: true
+    volume_above_average: false
 
 # ── NEWS SETTINGS ────────────────────────────────────────────
 news:
-  max_age_hours: 2               # LOWERED from 4 — stale news lags
+  max_age_hours: 3
   min_sources_to_boost: 2
   dedup_ttl_hours: 24
-  min_news_score_to_count: 2.0   # news must be ≥ ±2.0 to matter
-  min_keyword_matches: 2         # require ≥2 keywords per headline
+  min_news_score_to_count: 1.0   # FIX: 2.0 was too strict → 1.0 allows big single-keyword news
+  min_keyword_matches: 1         # FIX: 2 was too strict on flat news days → 1
 
 # Custom keyword overrides (adds to built-in list)
 keywords:

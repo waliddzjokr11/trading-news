@@ -265,8 +265,11 @@ def main():
 
     for coin, pdata in prices.items():
         price = pdata.get("price")
+        if price is None:
+            logger.debug(f"Skip {coin} — no price (fetch failed)")
+            continue
         volume = pdata.get("volume")
-        change_24h = pdata.get("change_24h", 0)
+        change_24h = pdata.get("change_24h", 0) or 0
         hist = state.get_history(coin)  # includes current just appended; evaluate uses history without double counting? evaluate appends current again — adjust by using hist[:-1]
         hist_for_eval = hist[:-1] if hist and hist[-1].get("price") == price else hist
 

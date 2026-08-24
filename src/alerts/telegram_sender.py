@@ -143,7 +143,9 @@ def format_telegram(coin, price, change_24h, signal_info, price_details, news_to
     header_extra = f" {conf}" if conf else ""
     lines.append(f"{emoji} <b>{_esc_html(coin.upper())} — {_esc_html(label)}{_esc_html(header_extra)}</b>")
     lines.append(f"⏱ {_esc_html(tf_display)} { _esc_html(mode) + ' • ' if mode else ''}Winrate: {_esc_html(winrate_str)} • Impact: <b>{_esc_html(impact)}</b>")
-    lines.append(f"<code>Price: ${price:,.2f}  24h: {change_24h:+.2f}%  Confidence: {conf or 'n/a'}</code>")
+    _p = price if isinstance(price, (int,float)) else 0
+    _ch = change_24h if isinstance(change_24h, (int,float)) else 0
+    lines.append(f"<code>Price: ${_p:,.2f}  24h: {_ch:+.2f}%  Confidence: {conf or 'n/a'}</code>")
     lines.append(f"<code>RSI: {rsi_str}  MACD: {macd_str}{macd_hist}  Vol: {vol_str or 'n/a'}</code>")
     # ── Trade Levels block — bold Entry/SL/TP in order, spaced ──
     entry = signal_info.get("entry") or signal_info.get("price_entry") or price

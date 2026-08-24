@@ -42,6 +42,22 @@ def send_telegram(bot_token, chat_id, message, parse_mode="HTML"):
     return False
 
 
+def _fmt_price(p):
+    try:
+        v = float(p)
+        if v >= 1000:
+            return f"${v:,.2f}"
+        elif v >= 1:
+            return f"${v:,.2f}"
+        elif v >= 0.01:
+            return f"${v:,.4f}"
+        elif v >= 0.0001:
+            return f"${v:,.6f}"
+        else:
+            return f"${v:,.8f}"
+    except:
+        return str(p)
+
 def _esc_html(s):
     return str(s).replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
 
@@ -145,7 +161,7 @@ def format_telegram(coin, price, change_24h, signal_info, price_details, news_to
     lines.append(f"⏱ {_esc_html(tf_display)} { _esc_html(mode) + ' • ' if mode else ''}Winrate: {_esc_html(winrate_str)} • Impact: <b>{_esc_html(impact)}</b>")
     _p = price if isinstance(price, (int,float)) else 0
     _ch = change_24h if isinstance(change_24h, (int,float)) else 0
-    lines.append(f"<code>Price: ${_p:,.2f}  24h: {_ch:+.2f}%  Confidence: {conf or 'n/a'}</code>")
+    lines.append(f"<code>Price: {_fmt_price(_p)}  24h: {_ch:+.2f}%  Confidence: {conf or 'n/a'}</code>")
     lines.append(f"<code>RSI: {rsi_str}  MACD: {macd_str}{macd_hist}  Vol: {vol_str or 'n/a'}</code>")
     # ── Trade Levels block — bold Entry/SL/TP in order, spaced ──
     entry = signal_info.get("entry") or signal_info.get("price_entry") or price
@@ -164,31 +180,31 @@ def format_telegram(coin, price, change_24h, signal_info, price_details, news_to
                 return 0
         if entry:
             try:
-                lines.append(f"<b>Entry:</b> <code>${float(entry):,.2f}</code>")
+                lines.append(f"<b>Entry:</b> <code>{_fmt_price(entry)}</code>")
             except:
                 lines.append(f"<b>Entry:</b> {_esc_html(str(entry))}")
         if sl is not None:
             try:
                 d = _dist(sl)
-                lines.append(f"<b>Stop Loss:</b> <code>${float(sl):,.2f}</code> ({d:+.2f}%)")
+                lines.append(f"<b>Stop Loss:</b> <code>{_fmt_price(sl)}</code> ({d:+.2f}%)")
             except:
                 lines.append(f"<b>Stop Loss:</b> {_esc_html(str(sl))}")
         if tp1 is not None:
             try:
                 d = _dist(tp1)
-                lines.append(f"<b>TP1:</b> <code>${float(tp1):,.2f}</code> ({d:+.2f}%)")
+                lines.append(f"<b>TP1:</b> <code>{_fmt_price(tp1)}</code> ({d:+.2f}%)")
             except:
                 lines.append(f"<b>TP1:</b> {_esc_html(str(tp1))}")
         if tp2 is not None:
             try:
                 d = _dist(tp2)
-                lines.append(f"<b>TP2:</b> <code>${float(tp2):,.2f}</code> ({d:+.2f}%)")
+                lines.append(f"<b>TP2:</b> <code>{_fmt_price(tp2)}</code> ({d:+.2f}%)")
             except:
                 lines.append(f"<b>TP2:</b> {_esc_html(str(tp2))}")
         if tp3 is not None:
             try:
                 d = _dist(tp3)
-                lines.append(f"<b>TP3:</b> <code>${float(tp3):,.2f}</code> ({d:+.2f}%)")
+                lines.append(f"<b>TP3:</b> <code>{_fmt_price(tp3)}</code> ({d:+.2f}%)")
             except:
                 lines.append(f"<b>TP3:</b> {_esc_html(str(tp3))}")
         # RR if we have entry/sl/tp1

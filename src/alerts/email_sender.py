@@ -31,10 +31,42 @@ def build_html(coin, price, change_24h, volume, avg_volume, signal_info, price_d
         "STRONG_BUY": "STRONG BUY — Entry Candidate",
     }
     label = label_map.get(signal, signal)
+    def _fmt_price(p):
+        try:
+            v=float(p)
+            if v>=1000: return f"${v:,.2f}"
+            elif v>=1: return f"${v:,.2f}"
+            elif v>=0.01: return f"${v:,.4f}"
+            elif v>=0.0001: return f"${v:,.6f}"
+            else: return f"${v:,.8f}"
+        except: return str(p)
     rsi_str = f"{rsi:.1f}" if rsi is not None else "n/a"
     macd_str = f"{macd.get('direction','n/a')} (hist {macd.get('histogram',0):+.3f})" if macd else "n/a"
     vol_str = f"{volume:,.0f}" if volume else "n/a"
     avg_str = f"{avg_volume:,.0f}" if avg_volume else "n/a"
+    # also prepare trade levels for email if available
+    entry = signal_info.get("entry") or price
+    sl = signal_info.get("stop_loss")
+    tp1 = signal_info.get("tp1")
+    tp2 = signal_info.get("tp2")
+    tp3 = signal_info.get("tp3")
+    trade_levels_html = ""
+    if any([entry, sl, tp1]):
+        def _dist(t):
+            try: return (float(t)-float(entry))/float(entry)*100 if entry else 0
+            except: return 0
+        trade_levels_html = '<div style="background:#242831;border-radius:8px;padding:14px;margin:14px 0"><h3 style="margin:0 0 8px 0">Trade Levels</h3><table style="width:100%;font-size:14px">'
+        if entry: trade_levels_html += f'<tr><td><b>Entry</b></td><td><b>{_fmt_price(entry)}</b></td></tr>'
+        if sl: trade_levels_html += f'<tr><td><b>Stop Loss</b></td><td>{_fmt_price(sl)} ({_dist(sl):+.2f}%)</td></tr>'
+        if tp1: trade_levels_html += f'<tr><td><b>TP1</b></td><td>{_fmt_price(tp1)} ({_dist(tp1):+.2f}%)</td></tr>'
+        if tp2: trade_levels_html += f'<tr><td><b>TP2</b></td><td>{_fmt_price(tp2)} ({_dist(tp2):+.2f}%)</td></tr>'
+        if tp3: trade_levels_html += f'<tr><td><b>TP3</b></td><td>{_fmt_price(tp3)} ({_dist(tp3):+.2f}%)</td></tr>'
+        if entry and sl and tp1:
+            try:
+                rr=abs(float(tp1)-float(entry))/abs(float(entry)-float(sl)) if float(entry)!=float(sl) else 0
+                trade_levels_html += f'<tr><td><b>RR TP1</b></td><td>1:{rr:.2f}</td></tr>'
+            except: pass
+        trade_levels_html += '</table></div>'
     news_rows = ""
     for n in (news_top or [])[:3]:
         title = n.get("title","")
@@ -63,7 +95,7 @@ def build_html(coin, price, change_24h, volume, avg_volume, signal_info, price_d
 <div style="background:#242831;border-radius:8px;padding:14px;margin:14px 0">
 <h3 style="margin:0 0 8px 0">Price</h3>
 <table style="width:100%;font-size:14px">
-<tr><td>Current</td><td><b>${_price:,.2f}</b></td></tr>
+<tr><td>Current</td><td><b>{_fmt_price(_price)}</b></td></tr>
 <tr><td>24h change</td><td>{_change:+.2f}%</td></tr>
 <tr><td>Volume vs avg</td><td>{vol_str} vs {avg_str}</td></tr>
 <tr><td>RSI</td><td>{rsi_str}</td></tr>
@@ -71,6 +103,7 @@ def build_html(coin, price, change_24h, volume, avg_volume, signal_info, price_d
 <tr><td>Triggers</td><td>{', '.join(price_details) if price_details else 'none'}</td></tr>
 </table>
 </div>
+{trade_levels_html}
 
 <div style="background:#242831;border-radius:8px;padding:14px;margin:14px 0">
 <h3 style="margin:0 0 8px 0">Top News</h3>

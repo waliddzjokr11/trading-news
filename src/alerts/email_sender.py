@@ -50,17 +50,21 @@ def build_html(coin, price, change_24h, volume, avg_volume, signal_info, price_d
     if not onchain_rows:
         onchain_rows = "<tr><td colspan='2'>No whale activity</td></tr>"
 
+    # handle None gracefully (200-coin fallback may have None price)
+    _price = price if isinstance(price, (int, float)) else 0
+    _change = change_24h if isinstance(change_24h, (int, float)) else 0
+    _score = score if isinstance(score, (int, float)) else 0
     html = f"""
 <html><body style="font-family:Arial,sans-serif;background:#0f1115;color:#e6e6e6;padding:20px">
 <div style="max-width:700px;margin:auto;background:#1a1d24;border-radius:12px;padding:24px;border-left:6px solid {color}">
 <h2 style="margin:0;color:{color}">{emoji} {coin.upper()} — {label}</h2>
-<p style="color:#aaa;margin:6px 0 12px 0">Composite score: <b>{score:+.2f}</b> &nbsp;|&nbsp; Weights price {wp:.2f} / news {wn:.2f} / onchain {wo:.2f}</p>
+<p style="color:#aaa;margin:6px 0 12px 0">Composite score: <b>{_score:+.2f}</b> &nbsp;|&nbsp; Weights price {wp:.2f} / news {wn:.2f} / onchain {wo:.2f}</p>
 
 <div style="background:#242831;border-radius:8px;padding:14px;margin:14px 0">
 <h3 style="margin:0 0 8px 0">Price</h3>
 <table style="width:100%;font-size:14px">
-<tr><td>Current</td><td><b>${price:,.2f}</b></td></tr>
-<tr><td>24h change</td><td>{change_24h:+.2f}%</td></tr>
+<tr><td>Current</td><td><b>${_price:,.2f}</b></td></tr>
+<tr><td>24h change</td><td>{_change:+.2f}%</td></tr>
 <tr><td>Volume vs avg</td><td>{vol_str} vs {avg_str}</td></tr>
 <tr><td>RSI</td><td>{rsi_str}</td></tr>
 <tr><td>MACD</td><td>{macd_str}</td></tr>

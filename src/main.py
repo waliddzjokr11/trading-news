@@ -466,10 +466,12 @@ def main():
             sig["entry"] = float(price)
         subject = f"[CRYPTO ALERT] {sig.get('emoji','')} {coin.upper()} — {SIGNAL_LABELS.get(sig['signal'], sig['signal'])} {sig.get('strength','')} {sig.get('stars_str','')}"
         # build bodies - telegram now includes strength/stars, detailed prices, full news (3) & on-chain
-        html = build_html(coin, price, ch, vol, avg_vol, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
+        # Only build HTML email if email is enabled (saves time and avoids None price crash when email disabled)
+        html = None
+        if email_enabled:
+            html = build_html(coin, price, ch, vol, avg_vol, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
+            html = html.replace("Rule-based", "Rule-based")  # already includes
         tg_msg = format_telegram(coin, price, ch, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
-        # also log disclaimer
-        html = html.replace("Rule-based", "Rule-based")  # already includes
 
         if args.dry_run:
             try:

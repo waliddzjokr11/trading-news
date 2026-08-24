@@ -9,217 +9,206 @@
 # Edit freely — no code change needed. Comment out any coin to disable.
 # * = borderline halal (staking/yield/biometrics) — remove 1 line if strict
 watchlist:
-  # --- Majors / L1 core (halal-screened) ---
-  - bitcoin              # BTC
-  - ethereum             # ETH* (staking interest — remove if strict)
-  - binancecoin          # BNB - you requested
-  - ripple               # XRP - you requested
-  - solana               # SOL* (staking)
-  - tron                 # TRX - you requested
-  - cardano              # ADA
-  - avalanche-2          # AVAX
-  - toncoin              # TON
-  - chainlink            # LINK
-  # --- L1/L0 infra ---
-  - polkadot             # DOT
-  - cosmos               # ATOM - you requested
-  - near                 # NEAR - you requested
-  - internet-computer    # ICP
-  - hedera-hashgraph     # HBAR
-  - aptos                # APT
-  - sui                  # SUI
-  - sei-network          # SEI
-  - celestia             # TIA
-  - kaspa                # KAS
-  # --- L2 / Scaling ---
-  - optimism             # OP - you requested
-  - arbitrum             # ARB
-  - starknet             # STRK
-  - mantle               # MNT
-  - immutable            # IMX
-  - manta-network        # MANTA
-  - altlayer             # ALT
-  - polygon-ecosystem-token # POL (ex-MATIC)
-  - ethereum-classic     # ETC
-  - litecoin             # LTC
-  # --- Legacy / High-vol ---
-  - bitcoin-cash         # BCH
-  - stellar              # XLM
-  - vechain              # VET
-  - algorand             # ALGO
-  - eos                  # EOS
-  - tezos                # XTZ
-  - neo                  # NEO
-  - iota                 # IOTA
-  - kava                 # KAVA
-  - multiversx           # EGLD
-  # --- Interop / Data ---
-  - thorchain            # RUNE
-  - fantom               # FTM
-  - crypto-com-chain     # CRO — CoinGecko id crypto-com-chain (Cronos)
-  - flow                 # FLOW
-  - axelar               # AXL
-  - band-protocol        # BAND
-  - api3                 # API3
-  - uma                  # UMA
-  - skale                # SKL
-  - cartesi              # CTSI
-  # --- AI / DePIN / Compute (includes TAO) ---
-  - bittensor            # TAO - you requested
-  - render-token         # RNDR
-  - fetch-ai             # FET
-  - singularitynet       # AGIX
-  - ocean-protocol       # OCEAN
-  - filecoin             # FIL
-  - arweave              # AR
-  - the-graph            # GRT
-  - akash-network        # AKT
-  - helium               # HNT
-  # --- Trading niche / Momentum ---
-  - jasmycoin            # JASMY
-  - worldcoin-wld        # WLD* (biometrics — remove if strict) — CoinGecko id worldcoin-wld
-  - arkham               # ARKM
-  - jupiter              # JUP
-  - jito-governance-token # JTO — CoinGecko id jito-governance-token
-  - pyth-network         # PYTH
-  - wormhole             # W
-  - layerzero            # ZRO
-  - eigenlayer           # EIGEN
-  - ethena               # ENA* (yield — flagged, remove if strict)
-  # --- Gaming / Metaverse / Alt (volume) ---
-  - chiliz               # CHZ
-  - gala                 # GALA
-  - the-sandbox          # SAND — CoinGecko id the-sandbox
-  - axie-infinity        # AXS
-  - enjincoin            # ENJ
-  - decentraland         # MANA
-  - apecoin              # APE
-  - blur                 # BLUR
-  - beam                 # BEAM
-  - dydx                 # DYDX
-  # --- Extra high-vol fillers (all Binance spot-listed) ---
-  - lisk                 # LSK
-  - waves                # WAVES — CoinGecko id waves
-  - zilliqa              # ZIL
-  - harmony              # ONE
-  - qtum                 # QTUM
-  - theta-token          # THETA
-  - injective-protocol   # INJ — high-volume trading niche
-  - uniswap              # UNI — DEX (halal, high vol)
-  - curve-dao-token      # CRV
-  - 1inch                # 1INCH
-  - mina-protocol        # MINA
-  - celo                 # CELO
-  - oasis-network        # ROSE
-  - notcoin              # NOT — high vol trading
-  - moonbeam             # GLMR
-  - astar                # ASTR
-  - dogecoin             # DOGE* (meme — flagged, remove if strict halal)
-  - ondo-finance         # ONDO* (RWA yield — flagged)
-  - pendle               # PENDLE* (yield — flagged, comment out if strict)
-  - ether-fi             # ETHFI* (restaking)
-  - ssv-network              # added 200-coin expansion
-  - rocket-pool              # added 200-coin expansion
-  - threshold-network-token              # added 200-coin expansion
-  - aurora              # added 200-coin expansion
-  - moonriver              # added 200-coin expansion
-  - secret              # added 200-coin expansion
-  - ankr              # added 200-coin expansion
-  - storj              # added 200-coin expansion
-  - flux              # added 200-coin expansion
-  - kadena              # added 200-coin expansion
-  - nervos-network              # added 200-coin expansion
-  - iotex              # added 200-coin expansion
-  - ontology              # added 200-coin expansion
-  - icon              # added 200-coin expansion
-  - origin-protocol              # added 200-coin expansion
-  - centrifuge              # added 200-coin expansion
-  - coti              # added 200-coin expansion
-  - celer-network              # added 200-coin expansion
-  - holo              # added 200-coin expansion
-  - dent              # added 200-coin expansion
-  - wink              # added 200-coin expansion
-  - bittorrent              # added 200-coin expansion
-  - just              # added 200-coin expansion
-  - sushi              # added 200-coin expansion
-  - compound              # added 200-coin expansion
-  - maker              # added 200-coin expansion
-  - aave              # added 200-coin expansion
-  - yearn-finance              # added 200-coin expansion
-  - balancer              # added 200-coin expansion
-  - synthetix              # added 200-coin expansion
-  - gmx              # added 200-coin expansion
-  - gains-network              # added 200-coin expansion
-  - perpetual-protocol              # added 200-coin expansion
-  - sushiswap              # added 200-coin expansion
-  - pancakeswap-token              # added 200-coin expansion
-  - quickswap              # added 200-coin expansion
-  - trader-joe              # added 200-coin expansion
-  - spookyswap              # added 200-coin expansion
-  - convex-finance              # added 200-coin expansion
-  - frax-share              # added 200-coin expansion
-  - frax              # added 200-coin expansion
-  - olympus              # added 200-coin expansion
-  - lido-dao              # added 200-coin expansion
-  - staked-ether              # added 200-coin expansion
-  - weth              # added 200-coin expansion
-  - wsteth              # added 200-coin expansion
-  - cbeth              # added 200-coin expansion
-  - reth              # added 200-coin expansion
-  - mask-network              # added 200-coin expansion
-  - audius              # added 200-coin expansion
-  - livepeer              # added 200-coin expansion
-  - ens              # added 200-coin expansion
-  - gitcoin              # added 200-coin expansion
-  - bancor              # added 200-coin expansion
-  - loopring              # added 200-coin expansion
-  - numeraire              # added 200-coin expansion
-  - orchid              # added 200-coin expansion
-  - covalent              # added 200-coin expansion
-  - alchemy-pay              # added 200-coin expansion
-  - amp              # added 200-coin expansion
-  - arpa              # added 200-coin expansion
-  - clover-finance              # added 200-coin expansion
-  - dodo              # added 200-coin expansion
-  - dego-finance              # added 200-coin expansion
-  - alpaca-finance              # added 200-coin expansion
-  - alpha-finance              # added 200-coin expansion
-  - beta-finance              # added 200-coin expansion
-  - beefy-finance              # added 200-coin expansion
-  - badger-dao              # added 200-coin expansion
-  - cream-finance              # added 200-coin expansion
-  - keep3r-v1              # added 200-coin expansion
-  - requiem              # added 200-coin expansion
-  - aragon              # added 200-coin expansion
-  - reef              # added 200-coin expansion
-  - radicle              # added 200-coin expansion
-  - district0x              # added 200-coin expansion
-  - funtoken              # added 200-coin expansion
-  - everipedia              # added 200-coin expansion
-  - serum              # added 200-coin expansion
-  - raydium              # added 200-coin expansion
-  - orca              # added 200-coin expansion
-  - stepn              # added 200-coin expansion
-  - green-satoshi-token              # added 200-coin expansion
-  - waltonchain              # added 200-coin expansion
-  - verge              # added 200-coin expansion
-  - vertcoin              # added 200-coin expansion
-  - viacoin              # added 200-coin expansion
-  - syscoin              # added 200-coin expansion
-  - nav-coin              # added 200-coin expansion
-  - pivx              # added 200-coin expansion
-  - firo              # added 200-coin expansion
-  - horizen              # added 200-coin expansion
-  - zcash              # added 200-coin expansion
-  - monero              # added 200-coin expansion
-  - dash              # added 200-coin expansion
-  - decred              # added 200-coin expansion
-  - komodo              # added 200-coin expansion
-  - ark              # added 200-coin expansion
-  - stratis              # added 200-coin expansion
-  - groestlcoin              # added 200-coin expansion
-  # --- Add HOME here when you confirm ticker ---
-  # - home               # HOME — uncomment after you provide CoinGecko ID
+  - bitcoin
+  - ethereum
+  - binancecoin
+  - ripple
+  - solana
+  - tron
+  - cardano
+  - avalanche-2
+  - toncoin
+  - chainlink
+  - polkadot
+  - cosmos
+  - near
+  - internet-computer
+  - hedera-hashgraph
+  - aptos
+  - sui
+  - sei-network
+  - celestia
+  - pepe
+  - optimism
+  - arbitrum
+  - starknet
+  - shiba-inu
+  - immutable
+  - manta-network
+  - altlayer
+  - polygon-ecosystem-token
+  - ethereum-classic
+  - litecoin
+  - bitcoin-cash
+  - stellar
+  - vechain
+  - algorand
+  - eos
+  - tezos
+  - neo
+  - iota
+  - kava
+  - multiversx
+  - thorchain
+  - fantom
+  - floki
+  - flow
+  - axelar
+  - band-protocol
+  - api3
+  - uma
+  - skale
+  - cartesi
+  - bittensor
+  - render-token
+  - fetch-ai
+  - singularitynet
+  - ocean-protocol
+  - filecoin
+  - arweave
+  - the-graph
+  - bonk
+  - helium
+  - jasmycoin
+  - worldcoin-wld
+  - arkham
+  - jupiter
+  - jito-governance-token
+  - pyth-network
+  - wormhole
+  - layerzero
+  - eigenlayer
+  - ethena
+  - chiliz
+  - gala
+  - the-sandbox
+  - axie-infinity
+  - enjincoin
+  - decentraland
+  - apecoin
+  - blur
+  - beam
+  - dydx
+  - lisk
+  - waves
+  - zilliqa
+  - harmony
+  - qtum
+  - theta-token
+  - injective-protocol
+  - uniswap
+  - curve-dao-token
+  - 1inch
+  - mina-protocol
+  - celo
+  - oasis-network
+  - notcoin
+  - moonbeam
+  - astar
+  - dogecoin
+  - ondo-finance
+  - pendle
+  - ether-fi
+  - ssv-network
+  - rocket-pool
+  - threshold-network-token
+  - dogwifhat
+  - moonriver
+  - secret
+  - ankr
+  - storj
+  - flux
+  - kadena
+  - nervos-network
+  - iotex
+  - ontology
+  - icon
+  - origin-protocol
+  - centrifuge
+  - coti
+  - celer-network
+  - holo
+  - dent
+  - wink
+  - bittorrent
+  - just
+  - sushi
+  - compound
+  - maker
+  - aave
+  - yearn-finance
+  - balancer
+  - synthetix
+  - gmx
+  - gains-network
+  - perpetual-protocol
+  - sushiswap
+  - pancakeswap-token
+  - quickswap
+  - trader-joe
+  - conflux-token
+  - convex-finance
+  - frax-share
+  - frax
+  - stargate-finance
+  - lido-dao
+  - basic-attention-token
+  - iostoken
+  - theta-fuel
+  - dusk-network
+  - metal
+  - mask-network
+  - audius
+  - livepeer
+  - ens
+  - gitcoin
+  - bancor
+  - loopring
+  - numeraire
+  - orchid
+  - civic
+  - alchemy-pay
+  - amp
+  - arpa
+  - clover-finance
+  - dodo
+  - dego-finance
+  - alpaca-finance
+  - alpha-finance
+  - beta-finance
+  - beefy-finance
+  - badger-dao
+  - cream-finance
+  - keep3r-v1
+  - ravencoin
+  - aragon
+  - reef
+  - radicle
+  - district0x
+  - funtoken
+  - everipedia
+  - serum
+  - raydium
+  - orca
+  - stepn
+  - blockstack
+  - waltonchain
+  - verge
+  - iexec-rlc
+  - hive
+  - syscoin
+  - chromaway
+  - pivx
+  - firo
+  - horizen
+  - zcash
+  - monero
+  - dash
+  - decred
+  - komodo
+  - ark
+  - stratis
+  - kyber-network-crystal
 
 # How often to check (minutes). GitHub Actions minimum is 5.
 # Private repo limit: 2000 min/mo → 30m = ~1440 runs (safe). Public = 15m OK.

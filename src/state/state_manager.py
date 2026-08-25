@@ -332,9 +332,8 @@ class StateManager:
         return hits
 
     def _record_trade_result(self, coin, hit, price, trade):
-        """Add to trade_history and update overall winrate (every TP touch counts)."""
-        perf = self.state.setdefault("performance", {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0})
-        # trade_history entry
+        """Add to trade_history and update overall winrate — win only when ALL TPs hit (TP3), not just TP1."""
+        perf = self.state.setdefault("performance", {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0})
         entry = {
             "timestamp": _now_iso(),
             "coin": coin,
@@ -350,22 +349,30 @@ class StateManager:
         self.state.setdefault("trade_history", []).append(entry)
         if len(self.state["trade_history"]) > 500:
             self.state["trade_history"] = self.state["trade_history"][-500:]
-        # update counts: TP = win, SL = loss (every single result)
-        if hit.startswith("TP"):
+        # count: only TP3 = full win, SL = loss, TP1/TP2 = partial (not counted as win/loss for winrate)
+        if hit == "TP3":
             perf["wins"] = perf.get("wins", 0) + 1
-            if hit == "TP1":
-                perf["tp1"] = perf.get("tp1", 0) + 1
-            elif hit == "TP2":
-                perf["tp2"] = perf.get("tp2", 0) + 1
-            elif hit == "TP3":
-                perf["tp3"] = perf.get("tp3", 0) + 1
+            perf["tp3"] = perf.get("tp3", 0) + 1
+            perf["tp1"] = perf.get("tp1", 0) + 1  # also count as tp1/tp2 were hit to get here
+            perf["tp2"] = perf.get("tp2", 0) + 1
+        elif hit == "TP2":
+            perf["partial"] = perf.get("partial", 0) + 1
+            perf["tp2"] = perf.get("tp2", 0) + 1
+            perf["tp1"] = perf.get("tp1", 0) + 1
+        elif hit == "TP1":
+            perf["partial"] = perf.get("partial", 0) + 1
+            perf["tp1"] = perf.get("tp1", 0) + 1
         elif hit == "SL":
             perf["losses"] = perf.get("losses", 0) + 1
             perf["sl"] = perf.get("sl", 0) + 1
-        # total = wins+losses (every TP/SL)
         total = perf.get("wins", 0) + perf.get("losses", 0)
         perf["total_signals"] = total
         perf["winrate"] = round(perf["wins"] / total * 100, 1) if total else 0
+        # learning: analyze loss patterns
+        try:
+            self._learn_from_loss(coin, hit, trade, price)
+        except:
+            pass
         # per coin winrate
         by_coin = perf.setdefault("by_coin", {})
         # store per coin wins/losses separately if needed
@@ -383,3 +390,41 @@ class StateManager:
         })
         if len(self.state["alert_history"]) > 200:
             self.state["alert_history"] = self.state["alert_history"][-200:]
+
+    def _learn_from_loss(self, coin, hit, trade, price):
+        """Analyze SL hits and auto-tune suggestions — learns why it's losing."""
+        if hit != "SL":
+            return
+        perf = self.state.get("performance", {})
+        # track loss reasons
+        learn = self.state.setdefault("learning", {"sl_by_reason": {}, "suggestions": [], "last_adjust": None})
+        # Determine likely reason: check distance SL vs entry, and recent news impact
+        try:
+            entry = float(trade.get("entry", 0))
+            sl = float(trade.get("sl", 0))
+            dist_pct = abs(sl - entry) / entry * 100 if entry else 0
+            reason = "tight SL" if dist_pct < 1.5 else "normal SL"
+            # also check if trade was opened on weak signal (low composite would be in alert_history)
+            # For now, simple heuristic: if many SL with dist <2%, suggest wider SL
+            sl_by_reason = learn.setdefault("sl_by_reason", {})
+            sl_by_reason[reason] = sl_by_reason.get(reason, 0) + 1
+            # If 3+ tight SL losses in last 10 trades, suggest wider SL via ATR multiplier
+            recent_losses = [t for t in self.state.get("trade_history", [])[-10:] if t.get("hit") == "SL"]
+            tight_losses = sum(1 for t in recent_losses if abs(float(t.get("sl",0)) - float(t.get("entry",0))) / float(t.get("entry",1)) *100 < 2.0)
+            if tight_losses >= 3:
+                learn["suggestions"] = ["Widen SL: ATR*1.5 → 2.0 (many SL hit on tight stop)"][-3:]
+            # If SL hits cluster on specific coin, suggest higher threshold for that coin
+            by_coin = {}
+            for t in self.state.get("trade_history", [])[-20:]:
+                if t.get("hit") == "SL":
+                    c = t.get("coin")
+                    by_coin[c] = by_coin.get(c, 0) + 1
+            worst = sorted(by_coin.items(), key=lambda x: x[1], reverse=True)[:1]
+            if worst and worst[0][1] >= 3:
+                learn["suggestions"].append(f"Raise threshold for {worst[0][0]} (3+ SL)")
+                learn["suggestions"] = learn["suggestions"][-3:]
+            # Keep suggestions bounded
+            if len(learn["suggestions"]) > 5:
+                learn["suggestions"] = learn["suggestions"][-5:]
+        except:
+            pass

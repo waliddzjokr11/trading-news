@@ -29,6 +29,13 @@ from alerts.telegram_sender import send_telegram, format_telegram
 from alerts.email_sender import send_email, build_html
 from dashboard.generate_dashboard import generate_dashboard
 from utils.startup_check import run_startup_check
+try:
+    from learning.adaptive_tuner import analyze_and_tune
+except ImportError:
+    try:
+        from src.learning.adaptive_tuner import analyze_and_tune
+    except:
+        analyze_and_tune = None
 
 # Load .env from project root (trading news/.env) — works regardless of cwd (local vs GitHub Actions)
 try:
@@ -629,14 +636,20 @@ def main():
     except Exception as e:
         logger.warning(f"Digest fail: {e}")
 
-    # --- Record run & save state ---
+    # --- Record run & adaptive learning ---
     status = "success" if source_used != "fail" else "fail"
-    # partial success if we had to use fallback
     if source_used in ("binance", "coincap", "coincap_partial", "binance_partial"):
         status = "success"
     state.record_run(status=status, source=source_used, coins=len(prices), alerts=sent_count)
+    # Adaptive tuner: learn from losses, suggest adjustments for higher winrate
+    if analyze_and_tune:
+        try:
+            res = analyze_and_tune(state.state, cfg)
+            logger.info(f"Adaptive tuner: winrate {res.get('winrate')}% suggestions {res.get('suggestions')}")
+        except Exception as e:
+            logger.warning(f"Tuner fail: {e}")
     state.save()
-    logger.info(f"Run done: {len(prices)} coins, {sent_count} alerts, source={source_used}")
+    logger.info(f"Run done: {len(prices)} coins, {sent_count} alerts, source={source_used} winrate {state.state.get('performance',{}).get('winrate',0)}%")
 
     # --- Dashboard ---
     try:

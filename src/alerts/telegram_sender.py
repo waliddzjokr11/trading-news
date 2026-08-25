@@ -158,95 +158,42 @@ def format_telegram(coin, price, change_24h, signal_info, price_details, news_to
     # Header with strength & winrate
     header_extra = f" {conf}" if conf else ""
     lines.append(f"{emoji} <b>{_esc_html(coin.upper())} — {_esc_html(label)}{_esc_html(header_extra)}</b>")
-    lines.append(f"⏱ {_esc_html(tf_display)} { _esc_html(mode) + ' • ' if mode else ''}Winrate: {_esc_html(winrate_str)} • Impact: <b>{_esc_html(impact)}</b>")
+    lines.append(f"⏱ {_esc_html(tf_display)} • Winrate: {_esc_html(winrate_str)} • <b>{_esc_html(impact)}</b> {conf or ''}")
     _p = price if isinstance(price, (int,float)) else 0
     _ch = change_24h if isinstance(change_24h, (int,float)) else 0
-    lines.append(f"<code>Price: {_fmt_price(_p)}  24h: {_ch:+.2f}%  Confidence: {conf or 'n/a'}</code>")
-    lines.append(f"<code>RSI: {rsi_str}  MACD: {macd_str}{macd_hist}  Vol: {vol_str or 'n/a'}</code>")
-    # ── Trade Levels block — bold Entry/SL/TP in order, spaced ──
+    lines.append(f"<code>{_fmt_price(_p)} ({_ch:+.2f}%) RSI:{rsi_str} MACD:{macd_str}</code>")
+    # ── Minimal Trade Levels: one line, spaced ──
     entry = signal_info.get("entry") or signal_info.get("price_entry") or price
     sl = signal_info.get("stop_loss") or signal_info.get("sl")
     tp1 = signal_info.get("tp1")
     tp2 = signal_info.get("tp2")
     tp3 = signal_info.get("tp3")
-    if any([entry, sl, tp1, tp2, tp3]):
-        lines.append("")
-        lines.append("<b>🎯 Trade Levels:</b>")
-        # helpers for distance
+    if any([entry, sl, tp1]):
         def _dist(target):
-            try:
-                return (float(target) - float(entry)) / float(entry) * 100 if entry else 0
-            except:
-                return 0
-        if entry:
-            try:
-                lines.append(f"<b>Entry:</b> <code>{_fmt_price(entry)}</code>")
-            except:
-                lines.append(f"<b>Entry:</b> {_esc_html(str(entry))}")
-        if sl is not None:
-            try:
-                d = _dist(sl)
-                lines.append(f"<b>Stop Loss:</b> <code>{_fmt_price(sl)}</code> ({d:+.2f}%)")
-            except:
-                lines.append(f"<b>Stop Loss:</b> {_esc_html(str(sl))}")
-        if tp1 is not None:
-            try:
-                d = _dist(tp1)
-                lines.append(f"<b>TP1:</b> <code>{_fmt_price(tp1)}</code> ({d:+.2f}%)")
-            except:
-                lines.append(f"<b>TP1:</b> {_esc_html(str(tp1))}")
-        if tp2 is not None:
-            try:
-                d = _dist(tp2)
-                lines.append(f"<b>TP2:</b> <code>{_fmt_price(tp2)}</code> ({d:+.2f}%)")
-            except:
-                lines.append(f"<b>TP2:</b> {_esc_html(str(tp2))}")
-        if tp3 is not None:
-            try:
-                d = _dist(tp3)
-                lines.append(f"<b>TP3:</b> <code>{_fmt_price(tp3)}</code> ({d:+.2f}%)")
-            except:
-                lines.append(f"<b>TP3:</b> {_esc_html(str(tp3))}")
-        # RR if we have entry/sl/tp1
-        try:
-            if entry and sl and tp1:
-                risk = abs(float(entry) - float(sl))
-                reward = abs(float(tp1) - float(entry))
-                if risk > 0:
-                    rr = reward / risk
-                    lines.append(f"<i>RR TP1: 1:{rr:.2f}</i>")
-        except:
-            pass
-        lines.append("")  # spacing after levels
-    if price_details:
-        pd = ", ".join(price_details[:3])
-        lines.append(f"Triggers: {_esc_html(pd)}")
-    # News with impact and links
+            try: return (float(target)-float(entry))/float(entry)*100 if entry else 0
+            except: return 0
+        lvl = []
+        if entry: lvl.append(f"<b>E:</b>{_fmt_price(entry)}")
+        if sl is not None: lvl.append(f"<b>SL:</b>{_fmt_price(sl)} ({_dist(sl):+.1f}%)")
+        if tp1 is not None: lvl.append(f"<b>TP1:</b>{_fmt_price(tp1)} ({_dist(tp1):+.1f}%)")
+        if tp2 is not None: lvl.append(f"<b>TP2:</b>{_fmt_price(tp2)}")
+        if tp3 is not None: lvl.append(f"<b>TP3:</b>{_fmt_price(tp3)}")
+        lines.append(" | ".join(lvl))
+    # News — minimal, only big news with link + impact + price
     if news_top:
-        lines.append("<b>📰 Big News (impact + link):</b>")
-        for n in news_top[:3]:
-            title = _esc_html(n.get("title","")[:110])
+        for n in news_top[:1]:  # only 1 big news to keep minimal
+            title = _esc_html(n.get("title","")[:90])
             link = n.get("link","")
             src = ",".join(n.get("sources", [n.get("source","")])) if n.get("sources") else n.get("source","")
             raw_score = n.get("news_score", n.get("score",0))
             impact_n = _human_impact(raw_score)
-            src_esc = _esc_html(src)
-            # link as Read →
             if link:
-                lines.append(f"• {title}\n  └ <a href=\"{link}\">Read → {src_esc}</a> | Impact: <b>{_esc_html(impact_n)}</b> ({raw_score:+.1f})")
+                lines.append(f"📰 <a href=\"{link}\">{title}</a> | <b>{_esc_html(impact_n)}</b>")
             else:
-                lines.append(f"• {title} | Impact: <b>{_esc_html(impact_n)}</b>")
-    else:
-        lines.append("<i>No big news — price-only signal</i>")
-    if onchain_events:
-        lines.append("<b>⛓️ On-chain:</b>")
-        for e in onchain_events[:2]:
-            t = _esc_html(e.get('title','')[:100])
-            sc = e.get('score','')
-            imp = _human_impact(sc)
-            lines.append(f"• {t} | Impact: <b>{_esc_html(imp)}</b> ({sc:+})")
-    # Time
-    lines.append(f"<i>Time: {_esc_html(str(signal_info.get('timestamp','now'))[:16].replace('T',' '))}  Next in {signal_info.get('poll_interval',30)}m  Africa/Algiers</i>")
-    if disclaimer:
-        lines.append("⚠️ <i>Big signals only. Rule-based. Not financial advice. DYOR.</i>")
+                lines.append(f"📰 {title} | <b>{_esc_html(impact_n)}</b>")
+            # price detail for this news
+            if price_details:
+                lines.append(f"<i>{_esc_html(price_details[0][:60])} • {_fmt_price(_p)}</i>")
+    # Time — minimal
+    lines.append(f"<i>{_esc_html(str(signal_info.get('timestamp','now'))[11:16])} • {signal_info.get('poll_interval',30)}m • DYOR</i>")
     return "\n".join(lines)

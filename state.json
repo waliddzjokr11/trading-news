@@ -1,4 +1,5 @@
 {
+<<<<<<< HEAD
   "price_history": {
     "bitcoin": [
       {
@@ -25428,11 +25429,21 @@
       "alerts": 0
     }
   ],
+=======
+  "price_history": {},
+  "last_alert": {},
+  "seen_news_hashes": [],
+  "last_run": null,
+  "run_count": 0,
+  "alert_history": [],
+  "run_history": [],
+>>>>>>> 6ed7b5b (fix: sanitize delayed_queue datetime + trade tracking for TP hits winrate)
   "tv_signals": [],
   "performance": {
     "total_signals": 0,
     "wins": 0,
     "losses": 0,
+<<<<<<< HEAD
     "by_coin": {},
     "suppressed": 2090
   },
@@ -25703,4 +25714,8 @@
     }
   },
   "last_digest_date": "2026-08-25"
+=======
+    "by_coin": {}
+  }
+>>>>>>> 6ed7b5b (fix: sanitize delayed_queue datetime + trade tracking for TP hits winrate)
 }

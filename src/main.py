@@ -251,6 +251,65 @@ def main():
         except Exception as e:
             logger.warning(f"append_price {coin} fail {e}")
 
+    # --- Check TP/SL hits for open trades (every single trade result → overall winrate) ---
+    try:
+        tp_hits = state.check_tp_hits(prices)
+        for hit in tp_hits:
+            coin = hit["coin"]
+            hit_type = hit["hit"]
+            hprice = hit["price"]
+            trade = hit["trade"]
+            # Build TP/SL signal for Telegram
+            emoji = "✅" if hit_type.startswith("TP") else "❌"
+            sig_tp = {
+                "emoji": emoji,
+                "signal": hit_type,
+                "composite_score": 0,
+                "strength": "WIN" if hit_type.startswith("TP") else "LOSS",
+                "stars_str": "★★★★★" if hit_type == "TP3" else "★★★☆☆" if hit_type == "TP1" else "★★☆☆☆",
+                "rsi": None,
+                "macd": None,
+                "price_score": 0,
+                "news_score": 0,
+                "onchain_score": 0,
+                "weights": {},
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "poll_interval": cfg.get("poll_interval_minutes", 30),
+                "timeframe": f"{cfg.get('poll_interval_minutes',30)}m",
+                "winrate": state.state.get("performance", {}).get("winrate", 0),
+                "entry": trade.get("entry"),
+                "stop_loss": trade.get("sl"),
+                "tp1": trade.get("tp1"),
+                "tp2": trade.get("tp2"),
+                "tp3": trade.get("tp3"),
+                "sl": trade.get("sl"),
+                "details": {"price": [f"{hit_type} at {hprice:.4f}" if isinstance(hprice, (int,float)) and hprice < 1 else f"{hit_type} at {hprice}"]},
+                "top_news": [],
+                "onchain_events": [],
+                "volume": None,
+                "volume_avg": None,
+            }
+            ch = 0
+            # respect email_enabled / telegram_enabled
+            _tg_token = os.environ.get("TELEGRAM_BOT_TOKEN")
+            _tg_chat = os.environ.get("TELEGRAM_CHAT_ID")
+            _email_enabled = cfg.get("alerts", {}).get("email_enabled", True)
+            _tg_enabled = cfg.get("alerts", {}).get("telegram_enabled", True)
+            tg_msg = format_telegram(coin, hprice, ch, sig_tp, [f"{hit_type} {coin}"], [], [])
+            if args.dry_run:
+                print(f"\n=== TP HIT {coin} {hit_type} @ {hprice} entry {trade.get('entry')} → winrate {sig_tp['winrate']}% ===\n{tg_msg[:700]}\n")
+            else:
+                if _tg_enabled:
+                    send_telegram(_tg_token, _tg_chat, tg_msg)
+                if _email_enabled:
+                    # build email for TP as well
+                    html = build_html(coin, hprice, ch, None, None, sig_tp, [hit_type], [], [])
+                    send_email(os.environ.get("GMAIL_USER"), os.environ.get("GMAIL_APP_PASSWORD"), os.environ.get("ALERT_EMAIL_TO"), f"[TRADE {hit_type}] {coin.upper()} {hit_type}", html)
+            logger.info(f"TP Signal {coin} {hit_type} at {hprice} — winrate now {sig_tp['winrate']}%")
+    except Exception as e:
+        logger.warning(f"TP check fail: {e}")
+        import traceback; traceback.print_exc()
+
     # --- Signal generation per coin ---
     signals = {}
     alerts_to_send = []
@@ -380,6 +439,46 @@ def main():
     # Priority sort: important (high conviction) first, then by absolute composite
     alerts_to_send.sort(key=lambda x: (x[2].get("_priority", 1), -abs(x[2].get("composite_score", 0))))
     # Enforce cap with tiering: important ASAP, normal delayed for limit
+    # Helper to make sig JSON serializable (convert datetime in top_news)
+    def _sanitize_sig(s):
+        import copy
+        # shallow copy and handle top_news published
+        ns = {}
+        for k,v in s.items():
+            if k == "top_news":
+                # convert each news item's published to iso if datetime
+                new_top = []
+                for n in v or []:
+                    nn = dict(n)
+                    pub = nn.get("published")
+                    if hasattr(pub, "isoformat"):
+                        try:
+                            nn["published"] = pub.isoformat()
+                        except:
+                            nn["published"] = str(pub)
+                    new_top.append(nn)
+                ns[k] = new_top
+            elif k == "onchain_events":
+                # onchain events have published as datetime
+                new_oc = []
+                for e in v or []:
+                    ee = dict(e)
+                    pub = ee.get("published")
+                    if hasattr(pub, "isoformat"):
+                        try:
+                            ee["published"] = pub.isoformat()
+                        except:
+                            ee["published"] = str(pub)
+                    new_oc.append(ee)
+                ns[k] = new_oc
+            elif hasattr(v, "isoformat"):
+                try:
+                    ns[k] = v.isoformat()
+                except:
+                    ns[k] = str(v)
+            else:
+                ns[k] = v
+        return ns
     if len(alerts_to_send) > max_alerts:
         immediate = alerts_to_send[:max_alerts]
         delayed = alerts_to_send[max_alerts:]
@@ -388,7 +487,7 @@ def main():
         logger.info(f"Priority tier: {imp_cnt} important immediate, {len(delayed)} normal queued (delayed for limit, max {max_alerts}/run)")
         # queue delayed for next run (will be retried, price may be stale but still useful for news)
         state.state.setdefault("delayed_queue", []).extend([
-            {"coin": c, "reason": r, "sig": s, "pdata": p, "queued_at": datetime.now(timezone.utc).isoformat()}
+            {"coin": c, "reason": r, "sig": _sanitize_sig(s), "pdata": p, "queued_at": datetime.now(timezone.utc).isoformat()}
             for c, p, s, r in delayed
         ])
         if len(state.state["delayed_queue"]) > 50:
@@ -482,6 +581,10 @@ def main():
             except UnicodeEncodeError:
                 print(f"\n{'='*70}\nDRY-RUN ALERT: {coin} {sig['signal']} {sig['composite_score']:+.2f}\n{'='*70}\n")
             state.record_alert(coin, sig["signal"], sig["composite_score"])
+            # open trade for winrate tracking (so TP hits will be detected next run)
+            try:
+                state.open_trade(coin, sig.get("entry", price), sig.get("stop_loss", sig.get("sl")), sig.get("tp1"), sig.get("tp2"), sig.get("tp3"), sig["signal"])
+            except: pass
             sent_count += 1
             continue
 
@@ -494,6 +597,9 @@ def main():
             ok_email = send_email(gmail_user, gmail_pass, email_to, subject, html)
         if ok_tg or ok_email:
             state.record_alert(coin, sig["signal"], sig["composite_score"])
+            try:
+                state.open_trade(coin, sig.get("entry", price), sig.get("stop_loss", sig.get("sl")), sig.get("tp1"), sig.get("tp2"), sig.get("tp3"), sig["signal"])
+            except: pass
             sent_count += 1
         else:
             logger.warning(f"Alert failed for {coin} (both channels)")

@@ -19,6 +19,9 @@ DEFAULT_STATE = {
     "last_run": None,
     "last_digest_date": None,
     "run_count": 0,
+    "open_trades": {},  # coin -> {entry, sl, tp1, tp2, tp3, signal, opened_at, entry_price}
+    "trade_history": [],  # closed trades with result
+    "performance": {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0},
 }
 
 # Signal severity rank (lower = more bearish / urgent dump). For escalation check we use absolute severity distance.
@@ -241,3 +244,142 @@ class StateManager:
             self.state["last_digest_date"] = dt.now(tz).strftime("%Y-%m-%d")
         except Exception:
             self.state["last_digest_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+    # ---- trade tracking (TP/SL hits + winrate) ----
+    def open_trade(self, coin, entry, sl, tp1, tp2, tp3, signal, timestamp=None):
+        """Open a new trade for winrate tracking. Overwrites existing open trade for that coin."""
+        self.state.setdefault("open_trades", {})[coin] = {
+            "coin": coin,
+            "entry": float(entry) if entry else 0,
+            "sl": float(sl) if sl else 0,
+            "tp1": float(tp1) if tp1 else 0,
+            "tp2": float(tp2) if tp2 else 0,
+            "tp3": float(tp3) if tp3 else 0,
+            "signal": signal,
+            "opened_at": timestamp or _now_iso(),
+            "highest_tp_hit": 0,  # 0=none, 1=TP1, 2=TP2, 3=TP3
+        }
+
+    def check_tp_hits(self, current_prices: dict):
+        """
+        Check all open trades against current price.
+        current_prices: dict coin -> {price, ...} or coin -> price
+        Returns list of hits: [{coin, hit: 'TP1'|'TP2'|'TP3'|'SL', price, trade}]
+        Updates trade_history + performance winrate, sends TP signal via history.
+        """
+        hits = []
+        open_trades = self.state.get("open_trades", {})
+        to_close = []
+        for coin, trade in list(open_trades.items()):
+            pdata = current_prices.get(coin)
+            if not pdata:
+                continue
+            cur = pdata.get("price") if isinstance(pdata, dict) else pdata
+            if cur is None:
+                continue
+            try:
+                cur_f = float(cur)
+            except:
+                continue
+            entry = trade.get("entry", 0)
+            sl = trade.get("sl", 0)
+            tp1 = trade.get("tp1", 0)
+            tp2 = trade.get("tp2", 0)
+            tp3 = trade.get("tp3", 0)
+            signal = trade.get("signal", "")
+            is_long = signal in ("BULLISH", "STRONG_BUY", "BUY", "STRONG BUY")
+            hit = None
+            # SL has priority if both hit in same bar (use low/high but we only have close; approximate with close)
+            # For long: TP hit if cur >= tp, SL if cur <= sl
+            # For short: inverted
+            if is_long:
+                if tp3 and cur >= tp3 and trade.get("highest_tp_hit", 0) < 3:
+                    hit = "TP3"
+                elif tp2 and cur >= tp2 and trade.get("highest_tp_hit", 0) < 2:
+                    hit = "TP2"
+                elif tp1 and cur >= tp1 and trade.get("highest_tp_hit", 0) < 1:
+                    hit = "TP1"
+                elif sl and cur <= sl:
+                    hit = "SL"
+            else:
+                # short / bearish
+                if tp3 and cur <= tp3 and trade.get("highest_tp_hit", 0) < 3:
+                    hit = "TP3"
+                elif tp2 and cur <= tp2 and trade.get("highest_tp_hit", 0) < 2:
+                    hit = "TP2"
+                elif tp1 and cur <= tp1 and trade.get("highest_tp_hit", 0) < 1:
+                    hit = "TP1"
+                elif sl and cur >= sl:
+                    hit = "SL"
+            if hit:
+                # update highest
+                level = {"TP1": 1, "TP2": 2, "TP3": 3, "SL": -1}.get(hit, 0)
+                if hit.startswith("TP"):
+                    trade["highest_tp_hit"] = max(trade.get("highest_tp_hit", 0), level)
+                hits.append({"coin": coin, "hit": hit, "price": cur_f, "trade": dict(trade)})
+                # update performance immediately for every TP touch (as per user: every single trade result)
+                self._record_trade_result(coin, hit, cur_f, trade)
+                # if SL or TP3, close trade
+                if hit in ("SL", "TP3"):
+                    to_close.append(coin)
+                else:
+                    # TP1/TP2 keep open for higher TP
+                    self.state["open_trades"][coin] = trade
+        for c in to_close:
+            self.state["open_trades"].pop(c, None)
+        if hits:
+            self.save()
+        return hits
+
+    def _record_trade_result(self, coin, hit, price, trade):
+        """Add to trade_history and update overall winrate (every TP touch counts)."""
+        perf = self.state.setdefault("performance", {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0})
+        # trade_history entry
+        entry = {
+            "timestamp": _now_iso(),
+            "coin": coin,
+            "signal": trade.get("signal"),
+            "hit": hit,
+            "entry": trade.get("entry"),
+            "exit_price": float(price),
+            "sl": trade.get("sl"),
+            "tp1": trade.get("tp1"),
+            "tp2": trade.get("tp2"),
+            "tp3": trade.get("tp3"),
+        }
+        self.state.setdefault("trade_history", []).append(entry)
+        if len(self.state["trade_history"]) > 500:
+            self.state["trade_history"] = self.state["trade_history"][-500:]
+        # update counts: TP = win, SL = loss (every single result)
+        if hit.startswith("TP"):
+            perf["wins"] = perf.get("wins", 0) + 1
+            if hit == "TP1":
+                perf["tp1"] = perf.get("tp1", 0) + 1
+            elif hit == "TP2":
+                perf["tp2"] = perf.get("tp2", 0) + 1
+            elif hit == "TP3":
+                perf["tp3"] = perf.get("tp3", 0) + 1
+        elif hit == "SL":
+            perf["losses"] = perf.get("losses", 0) + 1
+            perf["sl"] = perf.get("sl", 0) + 1
+        # total = wins+losses (every TP/SL)
+        total = perf.get("wins", 0) + perf.get("losses", 0)
+        perf["total_signals"] = total
+        perf["winrate"] = round(perf["wins"] / total * 100, 1) if total else 0
+        # per coin winrate
+        by_coin = perf.setdefault("by_coin", {})
+        # store per coin wins/losses separately if needed
+        # keep coin count for best/worst (already used)
+        # also track per coin winrate via trade_history filter later
+        self.state["performance"] = perf
+        # also add to alert_history as TP signal for dashboard
+        self.state.setdefault("alert_history", []).append({
+            "timestamp": _now_iso(),
+            "coin": coin,
+            "signal": hit,
+            "score": 0,
+            "action": hit,
+            "hit": hit,
+        })
+        if len(self.state["alert_history"]) > 200:
+            self.state["alert_history"] = self.state["alert_history"][-200:]

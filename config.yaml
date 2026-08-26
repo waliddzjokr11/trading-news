@@ -17,7 +17,7 @@ watchlist:
   - tron
   - cardano
   - avalanche-2
-  - toncoin
+  - the-open-network
   - chainlink
   - polkadot
   - cosmos
@@ -43,14 +43,14 @@ watchlist:
   - stellar
   - vechain
   - algorand
-  - eos
+  - tether-gold
   - tezos
   - neo
   - iota
   - kava
   - multiversx
   - thorchain
-  - fantom
+  - pax-gold
   - floki
   - flow
   - axelar
@@ -60,15 +60,15 @@ watchlist:
   - skale
   - cartesi
   - bittensor
-  - render-token
+  - aster-2
   - fetch-ai
-  - singularitynet
-  - ocean-protocol
+  - world-liberty-financial
+  - pump-fun
   - filecoin
   - arweave
   - the-graph
   - bonk
-  - helium
+  - morpho
   - jasmycoin
   - worldcoin-wld
   - arkham
@@ -87,10 +87,10 @@ watchlist:
   - decentraland
   - apecoin
   - blur
-  - beam
+  - sky
   - dydx
   - lisk
-  - waves
+  - quant-network
   - zilliqa
   - harmony
   - qtum
@@ -103,7 +103,7 @@ watchlist:
   - celo
   - oasis-network
   - notcoin
-  - moonbeam
+  - pudgy-penguins
   - astar
   - dogecoin
   - ondo-finance
@@ -118,7 +118,7 @@ watchlist:
   - ankr
   - storj
   - flux
-  - kadena
+  - official-trump
   - nervos-network
   - iotex
   - ontology
@@ -128,86 +128,86 @@ watchlist:
   - coti
   - celer-network
   - holo
-  - dent
-  - wink
-  - bittorrent
+  - aerodrome-finance
+  - virtual-protocol
+  - sun-token
   - just
   - sushi
   - compound
-  - maker
+  - midnight-3
   - aave
   - yearn-finance
-  - balancer
+  - falcon-finance-ff
   - synthetix
   - gmx
-  - gains-network
-  - perpetual-protocol
+  - kite-2
+  - plasma
   - sushiswap
   - pancakeswap-token
-  - quickswap
+  - ethereum-name-service
   - trader-joe
   - conflux-token
   - convex-finance
-  - frax-share
+  - kaia
   - frax
   - stargate-finance
   - lido-dao
   - basic-attention-token
   - iostoken
-  - theta-fuel
+  - dogwifcoin
   - dusk-network
   - metal
   - mask-network
-  - audius
+  - doublezero
   - livepeer
   - ens
   - gitcoin
   - bancor
-  - loopring
+  - compound-governance-token
   - numeraire
-  - orchid
+  - trust-wallet-token
   - civic
   - alchemy-pay
-  - amp
+  - kamino
   - arpa
-  - clover-finance
-  - dodo
-  - dego-finance
-  - alpaca-finance
-  - alpha-finance
-  - beta-finance
-  - beefy-finance
-  - badger-dao
-  - cream-finance
-  - keep3r-v1
+  - havven
+  - safepal
+  - vaulta
+  - stp-network
+  - zama
+  - meteora
+  - immutable-x
+  - cheems-token
+  - golem
+  - sonic-3
   - ravencoin
-  - aragon
-  - reef
-  - radicle
-  - district0x
-  - funtoken
-  - everipedia
-  - serum
-  - raydium
+  - elrond-erd-2
+  - genius-3
+  - dydx-chain
+  - zencash
+  - four
+  - banana-for-scale-2
+  - zksync
+  - reserve-rights-token
   - orca
   - stepn
   - blockstack
-  - waltonchain
+  - re
   - verge
   - iexec-rlc
   - hive
-  - syscoin
+  - sentient
   - chromaway
-  - pivx
-  - firo
+  - ordinals
+  - zero-gravity
   - horizen
   - zcash
-  - monero
+  - cat-2
   - dash
-  - decred
-  - komodo
+  - cheems
+  - echostar-robinhood-tokenized-stock
   - ark
-  - stratis
+  - 1mbabydoge
   - kyber-network-crystal
 
 # How often to check (minutes). GitHub Actions minimum is 5.

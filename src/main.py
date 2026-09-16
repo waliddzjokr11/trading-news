@@ -259,6 +259,15 @@ def main():
             logger.warning(f"append_price {coin} fail {e}")
 
     # --- Check TP/SL hits for open trades (every single trade result → overall winrate) ---
+    # Prune open trades for coins no longer tracked (e.g. delisted from watchlist)
+    try:
+        stale = [c for c in state.state.get("open_trades", {}) if c not in prices]
+        for c in stale:
+            state.state["open_trades"].pop(c, None)
+        if stale:
+            logger.info(f"Pruned {len(stale)} stale open trades (not in watchlist): {stale[:5]}")
+    except Exception as e:
+        logger.warning(f"Prune stale trades fail: {e}")
     try:
         tp_hits = state.check_tp_hits(prices)
         for hit in tp_hits:

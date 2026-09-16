@@ -1,5 +1,5 @@
 """
-price_fetcher.py — CoinGecko primary, Binance + CoinCap fallback, chunked for 100 coins.
+price_fetcher.py — CoinGecko primary, Binance spot + Binance futures fallback.
 Never crashes; returns dict coin_id -> {price, volume, change_24h, source}
 """
 import time
@@ -47,7 +47,7 @@ COINGECKO_TO_BINANCE = {
     "multiversx": "EGLDUSDT", "thorchain": "RUNEUSDT",     "fantom": "FTMUSDT", "cronos": "CROUSDT", "crypto-com-chain": "CROUSDT",
     "flow": "FLOWUSDT", "axelar": "AXLUSDT", "band-protocol": "BANDUSDT", "api3": "API3USDT",
     "uma": "UMAUSDT", "skale": "SKLUSDT", "cartesi": "CTSIUSDT", "bittensor": "TAOUSDT",
-    "render-token": "RNDRUSDT", "fetch-ai": "FETUSDT", "singularitynet": "AGIXUSDT",
+    "render-token": "RENDERUSDT", "fetch-ai": "FETUSDT", "singularitynet": "AGIXUSDT",
     "ocean-protocol": "OCEANUSDT", "filecoin": "FILUSDT", "arweave": "ARUSDT", "the-graph": "GRTUSDT",
     "akash-network": "AKTUSDT", "helium": "HNTUSDT", "jasmycoin": "JASMYUSDT", "worldcoin": "WLDUSDT",
     "arkham": "ARKMUSDT", "jupiter": "JUPUSDT", "jito": "JTOUSDT", "pyth-network": "PYTHUSDT",
@@ -63,6 +63,8 @@ COINGECKO_TO_BINANCE = {
     "astar": "ASTRUSDT", "dogecoin": "DOGEUSDT", "worldcoin-wld": "WLDUSDT", "worldcoin": "WLDUSDT",
     "jito-governance-token": "JTOUSDT", "jito": "JTOUSDT", "waves": "WAVESUSDT", "wavestech": "WAVESUSDT",
     "manta-network": "MANTAUSDT", "toncoin": "TONUSDT",
+    # NOTE: TONUSDT spot is currently BREAK (halted) on Binance — kept for CoinGecko price only
+    "the-open-network": "TONUSDT",  # correct symbol (was GRAMUSDT, wrong token)
     'ssv-network': 'SSVUSDT',
     'rocket-pool': 'RPLUSDT',
     'threshold-network-token': 'TUSDT',
@@ -238,9 +240,41 @@ COINGECKO_TO_BINANCE = {
     'kyber-network-crystal': 'KNCUSDT',
 }
 
+# Binance futures symbols differ for low-price memes (1000X prefix).
+# Maps CoinGecko ID -> Binance USDT-M futures symbol (only where it differs from spot).
+COINGECKO_TO_BINANCE_FUTURES = {
+    "pepe": "1000PEPEUSDT",
+    "shiba-inu": "1000SHIBUSDT",
+    "bonk": "1000BONKUSDT",
+    "floki": "1000FLOKIUSDT",
+    "dogecoin": "DOGEUSDT",
+    "official-trump": "TRUMPUSDT",
+    "pudgy-penguins": "PENGUUSDT",
+    "pump-fun": "PUMPUSDT",
+    "dogwifhat": "WIFUSDT",
+    "dogwifcoin": "WIFUSDT",
+    "cheems-token": "1000CHEEMSUSDT",
+    "cheems": "1000CHEEMSUSDT",
+    "cat-2": "1000CATUSDT",
+    "echostar-robinhood-tokenized-stock": "1000SATSUSDT",
+    "1mbabydoge": "1MBABYDOGEUSDT",
+    "lisk": "LSKUSDT",
+    "notcoin": "NOTUSDT",
+    "moonbeam": "GLMRUSDT",
+}
+
+
+def futures_symbol_for(coin_id):
+    """Return Binance futures symbol for a coin (handles 1000-prefix memes)."""
+    if coin_id in COINGECKO_TO_BINANCE_FUTURES:
+        return COINGECKO_TO_BINANCE_FUTURES[coin_id]
+    return COINGECKO_TO_BINANCE.get(coin_id)
+
+
 COINGECKO_URL = "https://api.coingecko.com/api/v3/coins/markets"
 BINANCE_URL = "https://api.binance.com/api/v3/ticker/24hr"
-COINCAP_URL = "https://api.coincap.io/v2/assets"
+BINANCE_FUTURES_URL = "https://fapi.binance.com/fapi/v1/ticker/24hr"
+COINCAP_URL = "https://api.coincap.io/v2/assets"  # DEPRECATED (DNS dead) — kept for reference only
 
 HEADERS = {"User-Agent": "crypto-alert-system/1.0"}
 
@@ -363,48 +397,74 @@ def fetch_binance(ids):
         return None
 
 
-def fetch_coincap(ids):
-    """Second fallback: CoinCap assets."""
+def fetch_binance_futures(ids):
+    """Second fallback: Binance USDT-M futures (also proves futures listing)."""
     results = {}
     try:
-        # CoinCap id mapping differs (e.g., bitcoin -> bitcoin). Try direct.
-        coincap_limiter.wait()
-        resp = requests.get(COINCAP_URL, params={"limit": 2000}, headers=HEADERS, timeout=15)
-        if _handle_429(resp):
-            coincap_limiter.wait()
-            resp = requests.get(COINCAP_URL, params={"limit": 2000}, headers=HEADERS, timeout=15)
-        if resp.status_code != 200:
-            logger.warning(f"CoinCap failed {resp.status_code}")
+        import json as _json
+        symbols = [futures_symbol_for(cid) for cid in ids]
+        symbols = [s for s in symbols if s]
+        if not symbols:
             return None
-        data = resp.json().get("data", [])
-        # build lookup by id
-        lookup = {item["id"]: item for item in data}
-        # also by symbol lower
-        sym_lookup = {item["symbol"].lower(): item for item in data}
+        # bulk tickers (fapi supports symbols=[...] too)
+        try:
+            binance_limiter.wait()
+            resp = requests.get(BINANCE_FUTURES_URL, params={"symbols": _json.dumps(symbols)}, headers=HEADERS, timeout=15)
+            if resp.status_code == 200 and isinstance(resp.json(), list):
+                rev = {}
+                for cid in ids:
+                    fs = futures_symbol_for(cid)
+                    if fs:
+                        rev[fs] = cid
+                for item in resp.json():
+                    cid = rev.get(item.get("symbol"))
+                    if cid:
+                        results[cid] = {
+                            "price": float(item.get("lastPrice", 0)),
+                            "volume": float(item.get("quoteVolume", 0)),
+                            "change_24h": float(item.get("priceChangePercent", 0)),
+                            "source": "binance_futures",
+                        }
+                if results:
+                    logger.info(f"Binance futures bulk: fetched {len(results)}/{len(ids)}")
+                    return results
+        except Exception as e:
+            logger.debug(f"Binance futures bulk fail: {e}")
+        # per-symbol fallback
+        rev = {}
         for cid in ids:
-            # try direct id
-            item = lookup.get(cid) or sym_lookup.get(cid.split("-")[0])
-            # also try binance symbol base
-            if not item:
-                sym = COINGECKO_TO_BINANCE.get(cid, "").replace("USDT", "").lower()
-                item = sym_lookup.get(sym)
-            if item:
-                results[cid] = {
-                    "price": float(item.get("priceUsd", 0)),
-                    "volume": float(item.get("volumeUsd24Hr", 0)),
-                    "change_24h": float(item.get("changePercent24Hr", 0)),
-                    "source": "coincap",
-                }
-        logger.info(f"CoinCap: fetched {len(results)}/{len(ids)}")
+            fs = futures_symbol_for(cid)
+            if fs:
+                rev[fs] = cid
+        for sym, cid in rev.items():
+            try:
+                binance_limiter.wait()
+                r = requests.get(BINANCE_FUTURES_URL, params={"symbol": sym}, headers=HEADERS, timeout=10)
+                if r.status_code == 200:
+                    j = r.json()
+                    results[cid] = {
+                        "price": float(j.get("lastPrice", 0)),
+                        "volume": float(j.get("quoteVolume", 0)),
+                        "change_24h": float(j.get("priceChangePercent", 0)),
+                        "source": "binance_futures",
+                    }
+                time.sleep(0.2)
+            except Exception as e:
+                logger.debug(f"Binance futures {sym} fail: {e}")
         return results if results else None
-    except Exception as e:
-        logger.warning(f"CoinCap exception: {e}")
+    except requests.exceptions.RequestException as e:
+        logger.warning(f"Binance futures exception: {e}")
         return None
+
+
+def fetch_coincap(ids):
+    """DEPRECATED: CoinCap DNS is dead. Delegates to Binance futures (same reliability role)."""
+    return fetch_binance_futures(ids)
 
 
 def fetch_prices(watchlist, primary="coingecko", chunk_size=50):
     """
-    Priority chain: coingecko -> binance -> coincap
+    Priority chain: coingecko -> binance spot -> binance futures
     Returns: (prices_dict, source_used)
     Never raises.
     """
@@ -433,15 +493,15 @@ def fetch_prices(watchlist, primary="coingecko", chunk_size=50):
     res2 = fetch_binance(wl)
     if res2 and len(res2) >= max(1, len(wl) * 0.5):
         return res2, "binance"
-    logger.warning("Binance incomplete/failed, trying CoinCap")
-    # 3) CoinCap
-    res3 = fetch_coincap(wl)
+    logger.warning("Binance spot incomplete/failed, trying Binance futures")
+    # 3) Binance futures (also confirms futures listing)
+    res3 = fetch_binance_futures(wl)
     if res3:
-        return res3, "coincap"
+        return res3, "binance_futures"
     # if all fail, return whatever we have (maybe partial)
     best = res or res2 or res3 or {}
     if best:
-        src = "coingecko" if res else "binance" if res2 else "coincap" if res3 else "none"
+        src = "coingecko" if res else "binance" if res2 else "binance_futures" if res3 else "none"
         return best, src + "_partial"
     return {}, "none"
 

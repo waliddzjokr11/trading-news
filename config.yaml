@@ -1,223 +1,96 @@
 # ============================================================
 # CRYPTO ALERT SYSTEM — USER CONFIGURATION
-# Algeria (Oran) — Africa/Algiers — Private repo default 30m
-# HARDENED for winrate >60% — high conviction only (20% → 60%+)
+# Algeria (Oran) — Africa/Algiers — realtime 5m
+# Halal Binance spot+futures only, high-conviction signals
 # ============================================================
 
 # 100-coin watchlist: mostly-halal, top Binance volume + trading niche
 # All are CoinGecko IDs. Maps 1:1 to Binance USDT pairs in comment.
 # Edit freely — no code change needed. Comment out any coin to disable.
 # * = borderline halal (staking/yield/biometrics) — remove 1 line if strict
+# 70-coin watchlist: Binance SPOT+FUTURES verified, halal-screened, top volume
+# All CoinGecko IDs map to Binance USDT pairs (see COINGECKO_TO_BINANCE_FUTURES for 1000-prefix memes).
+# Excluded: privacy (XMR/ZEC/DASH), lending-yield (AAVE/ENA/PENDLE), stables, halted (TON), low-volume memes.
 watchlist:
   - bitcoin
   - ethereum
-  - binancecoin
   - ripple
   - solana
-  - tron
-  - cardano
-  - avalanche-2
-  - the-open-network
-  - chainlink
-  - polkadot
-  - cosmos
-  - near
-  - internet-computer
-  - hedera-hashgraph
-  - aptos
-  - sui
-  - sei-network
-  - celestia
-  - pepe
-  - optimism
-  - arbitrum
-  - starknet
-  - shiba-inu
-  - immutable
-  - manta-network
-  - altlayer
-  - polygon-ecosystem-token
-  - ethereum-classic
-  - litecoin
-  - bitcoin-cash
-  - stellar
-  - vechain
-  - algorand
-  - tether-gold
-  - tezos
-  - neo
-  - iota
-  - kava
-  - multiversx
-  - thorchain
-  - pax-gold
-  - floki
-  - flow
-  - axelar
-  - band-protocol
-  - api3
-  - uma
-  - skale
-  - cartesi
-  - bittensor
-  - aster-2
-  - fetch-ai
-  - world-liberty-financial
-  - pump-fun
-  - filecoin
-  - arweave
-  - the-graph
-  - bonk
-  - morpho
-  - jasmycoin
-  - worldcoin-wld
-  - arkham
-  - jupiter
-  - jito-governance-token
-  - pyth-network
-  - wormhole
-  - layerzero
-  - eigenlayer
-  - ethena
-  - chiliz
-  - gala
-  - the-sandbox
-  - axie-infinity
-  - enjincoin
-  - decentraland
-  - apecoin
-  - blur
-  - sky
-  - dydx
-  - lisk
-  - quant-network
-  - zilliqa
-  - harmony
-  - qtum
-  - theta-token
-  - injective-protocol
-  - uniswap
-  - curve-dao-token
-  - 1inch
-  - mina-protocol
-  - celo
-  - oasis-network
-  - notcoin
-  - pudgy-penguins
-  - astar
+  - binancecoin
   - dogecoin
-  - ondo-finance
-  - pendle
-  - ether-fi
-  - ssv-network
-  - rocket-pool
-  - threshold-network-token
-  - dogwifhat
-  - moonriver
-  - secret
-  - ankr
-  - storj
-  - flux
+  - arbitrum
+  - uniswap
+  - sui
+  - lisk
+  - near
+  - stellar
+  - cardano
+  - tron
+  - chainlink
+  - pepe
+  - pump-fun
+  - bittensor
+  - pax-gold
+  - avalanche-2
+  - litecoin
+  - worldcoin
   - official-trump
-  - nervos-network
-  - iotex
-  - ontology
-  - icon
-  - origin-protocol
-  - centrifuge
-  - coti
-  - celer-network
-  - holo
-  - aerodrome-finance
-  - virtual-protocol
-  - sun-token
-  - just
-  - sushi
-  - compound
-  - midnight-3
-  - aave
-  - yearn-finance
-  - falcon-finance-ff
-  - synthetix
-  - gmx
-  - kite-2
+  - filecoin
+  - ondo-finance
+  - hedera-hashgraph
+  - injective-protocol
+  - fetch-ai
+  - bitcoin-cash
+  - aptos
+  - polkadot
+  - polygon-ecosystem-token
+  - pudgy-penguins
+  - aster-2
   - plasma
-  - sushiswap
+  - internet-computer
+  - layerzero
+  - ace-data-cloud-2
+  - optimism
+  - jupiter
   - pancakeswap-token
-  - ethereum-name-service
-  - trader-joe
-  - conflux-token
-  - convex-finance
-  - kaia
-  - frax
-  - stargate-finance
+  - eigenlayer
+  - ether-fi
+  - curve-dao-token
+  - celestia
+  - astar
   - lido-dao
-  - basic-attention-token
   - iostoken
-  - dogwifcoin
-  - dusk-network
-  - metal
-  - mask-network
-  - doublezero
-  - livepeer
-  - ens
-  - gitcoin
-  - bancor
-  - compound-governance-token
-  - numeraire
-  - trust-wallet-token
-  - civic
-  - alchemy-pay
-  - kamino
-  - arpa
-  - havven
-  - safepal
-  - vaulta
-  - stp-network
   - zama
-  - meteora
-  - immutable-x
-  - cheems-token
-  - golem
-  - sonic-3
-  - ravencoin
-  - elrond-erd-2
-  - genius-3
-  - dydx-chain
-  - zencash
-  - four
-  - banana-for-scale-2
-  - zksync
-  - reserve-rights-token
-  - orca
-  - stepn
-  - blockstack
-  - re
-  - verge
-  - iexec-rlc
-  - hive
-  - sentient
-  - chromaway
-  - ordinals
-  - zero-gravity
-  - horizen
-  - zcash
-  - cat-2
-  - dash
-  - cheems
-  - echostar-robinhood-tokenized-stock
+  - bonk
+  - pyth-network
+  - gala
+  - algorand
   - ark
-  - 1mbabydoge
-  - kyber-network-crystal
+  - mina-protocol
+  - sei-network
+  - virtual-protocol
+  - aerodrome-finance
+  - morpho
+  - civic
+  - zilliqa
+  - arweave
+  - blockstack
+  - cosmos
+  - ethereum-classic
+  - ordinals
+  - vechain
+  - jito-governance-token
+  - dogwifhat
+  - shiba-inu
 
 # How often to check (minutes). GitHub Actions minimum is 5.
-# Private repo limit: 2000 min/mo → 30m = ~1440 runs (safe). Public = 15m OK.
-poll_interval_minutes: 30
+# Public repo: unlimited minutes → 5m realtime. Private repo: use 15-30m.
+poll_interval_minutes: 5
 
 # ── PRICE SIGNAL THRESHOLDS ─────────────────────────────────
 price:
-  short_window_minutes: 15
-  short_change_pct: 2.5          # balanced: 5.0 gave 0/day → 2.5 restores some price signals
+  short_window_minutes: 5        # realtime 5m runs: 1 bar lookback
+  short_change_pct: 2.5
   medium_window_minutes: 60
   medium_change_pct: 4.5
   volume_multiplier: 2.2
@@ -280,12 +153,12 @@ keywords:
 alerts:
   email_enabled: false
   telegram_enabled: true
-  cooldown_minutes: 90           # RAISED from 60 — avoid re-alerting same move
+  cooldown_minutes: 30           # realtime 5m runs: 30m cooldown (was 90 — caused hourly bursts)
   daily_digest_time: "08:00"
   timezone: "Africa/Algiers"
-  min_signal_to_alert: "BULLISH" # CHANGED from BEARISH — only BULLISH+ (BEARISH only if dump)
-  max_alerts_per_run: 10         # LOWERED from 20 — quality over quantity
-  max_alerts_per_coin_per_day: 3 # NEW — hard cap per coin per day
+  min_signal_to_alert: "BULLISH" # only BULLISH+ (BEARISH only if dump)
+  max_alerts_per_run: 5          # realtime: max 5 per 5m run, no queue (was 10 + delayed queue = bursts)
+  max_alerts_per_coin_per_day: 3
 
 # ── DATA SOURCE SETTINGS ─────────────────────────────────────
 sources:

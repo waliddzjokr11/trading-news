@@ -21,7 +21,7 @@ DEFAULT_STATE = {
     "run_count": 0,
     "open_trades": {},  # coin -> {entry, sl, tp1, tp2, tp3, signal, opened_at, entry_price}
     "trade_history": [],  # closed trades with result
-    "performance": {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0},
+    "performance": {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0, "tp1_rate": 0},
 }
 
 # Signal severity rank (lower = more bearish / urgent dump). For escalation check we use absolute severity distance.
@@ -333,7 +333,7 @@ class StateManager:
 
     def _record_trade_result(self, coin, hit, price, trade):
         """Add to trade_history and update overall winrate — win only when ALL TPs hit (TP3), not just TP1."""
-        perf = self.state.setdefault("performance", {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0})
+        perf = self.state.setdefault("performance", {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0, "tp1_rate": 0})
         entry = {
             "timestamp": _now_iso(),
             "coin": coin,
@@ -349,16 +349,14 @@ class StateManager:
         self.state.setdefault("trade_history", []).append(entry)
         if len(self.state["trade_history"]) > 500:
             self.state["trade_history"] = self.state["trade_history"][-500:]
-        # count: only TP3 = full win, SL = loss, TP1/TP2 = partial (not counted as win/loss for winrate)
+        # count: only TP3 = full win, SL = loss. Each level counted ONCE per trade
+        # (highest_tp_hit guard ensures one hit per level, so just increment that level).
         if hit == "TP3":
             perf["wins"] = perf.get("wins", 0) + 1
             perf["tp3"] = perf.get("tp3", 0) + 1
-            perf["tp1"] = perf.get("tp1", 0) + 1  # also count as tp1/tp2 were hit to get here
-            perf["tp2"] = perf.get("tp2", 0) + 1
         elif hit == "TP2":
             perf["partial"] = perf.get("partial", 0) + 1
             perf["tp2"] = perf.get("tp2", 0) + 1
-            perf["tp1"] = perf.get("tp1", 0) + 1
         elif hit == "TP1":
             perf["partial"] = perf.get("partial", 0) + 1
             perf["tp1"] = perf.get("tp1", 0) + 1
@@ -368,6 +366,9 @@ class StateManager:
         total = perf.get("wins", 0) + perf.get("losses", 0)
         perf["total_signals"] = total
         perf["winrate"] = round(perf["wins"] / total * 100, 1) if total else 0
+        # TP1 progress rate: each trade touches TP1 at most once (guarded),
+        # so tp1 counter = # trades that reached at least TP1.
+        perf["tp1_rate"] = round(perf.get("tp1", 0) / total * 100, 1) if total else 0
         # learning: analyze loss patterns
         try:
             self._learn_from_loss(coin, hit, trade, price)

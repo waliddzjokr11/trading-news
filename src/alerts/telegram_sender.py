@@ -38,7 +38,7 @@ def send_telegram(bot_token, chat_id, message, parse_mode="HTML"):
         except Exception as e:
             logger.warning(f"Telegram exception attempt {attempt+1}: {e}")
         if attempt == 0:
-            time.sleep(30)
+            time.sleep(5)
     return False
 
 
@@ -131,37 +131,33 @@ def format_telegram(coin, price, change_24h, signal_info, price_details, news_to
     winrate = signal_info.get("winrate")
     if winrate is None:
         winrate = signal_info.get("performance_winrate")
-    winrate_str = f"{winrate:.1f}%" if isinstance(winrate, (int,float)) else "n/a" if winrate is None else str(winrate)
-    # also try from state performance
-    if winrate_str == "n/a":
+    tp1_rate = signal_info.get("tp1_rate")
+    if winrate is None or tp1_rate is None:
         try:
             import json, pathlib
-            j = json.loads(pathlib.Path("state.json").read_text(encoding="utf-8"))
-            wr = j.get("performance", {}).get("winrate")
-            if wr:
-                winrate_str = f"{wr:.1f}%"
+            perf = json.loads(pathlib.Path("state.json").read_text(encoding="utf-8")).get("performance", {})
+            if winrate is None:
+                winrate = perf.get("winrate")
+            if tp1_rate is None:
+                tp1_rate = perf.get("tp1_rate")
         except:
             pass
-    # price/volume
-    vol = signal_info.get("volume")
-    vol_avg = signal_info.get("volume_avg")
-    vol_str = ""
-    if vol:
-        vol_str = f"${vol:,.0f}"
-        if vol_avg:
-            vol_str += f" (avg {vol_avg:,.0f}, {vol/vol_avg:.1f}x)"
+    if isinstance(winrate, (int, float)):
+        wr_str = f"{winrate:.0f}%"
+        if isinstance(tp1_rate, (int, float)) and tp1_rate:
+            wr_str += f" (TP1 {tp1_rate:.0f}%)"
+    else:
+        wr_str = "n/a"
     # Human impact instead of raw score
     impact = _human_impact(score)
     # Confidence from stars
     conf = f"{stars_str} {strength}" if stars_str else strength
     lines = []
-    # Header with strength & winrate
+    # Header with strength
     header_extra = f" {conf}" if conf else ""
     lines.append(f"{emoji} <b>{_esc_html(coin.upper())} — {_esc_html(label)}{_esc_html(header_extra)}</b>")
-    lines.append(f"⏱ {_esc_html(tf_display)} • Winrate: {_esc_html(winrate_str)} • <b>{_esc_html(impact)}</b> {conf or ''}")
-    _p = price if isinstance(price, (int,float)) else 0
-    _ch = change_24h if isinstance(change_24h, (int,float)) else 0
-    lines.append(f"<code>{_fmt_price(_p)} ({_ch:+.2f}%) RSI:{rsi_str} MACD:{macd_str}</code>")
+    _p = price if isinstance(price, (int, float)) else 0
+    _ch = change_24h if isinstance(change_24h, (int, float)) else 0
     # ── Minimal Trade Levels: one line, spaced ──
     entry = signal_info.get("entry") or signal_info.get("price_entry") or price
     sl = signal_info.get("stop_loss") or signal_info.get("sl")
@@ -179,21 +175,18 @@ def format_telegram(coin, price, change_24h, signal_info, price_details, news_to
         if tp2 is not None: lvl.append(f"<b>TP2:</b>{_fmt_price(tp2)}")
         if tp3 is not None: lvl.append(f"<b>TP3:</b>{_fmt_price(tp3)}")
         lines.append(" | ".join(lvl))
-    # News — minimal, only big news with link + impact + price
+    # News: 1 big item with link + impact + price detail
     if news_top:
-        for n in news_top[:1]:  # only 1 big news to keep minimal
-            title = _esc_html(n.get("title","")[:90])
-            link = n.get("link","")
-            src = ",".join(n.get("sources", [n.get("source","")])) if n.get("sources") else n.get("source","")
-            raw_score = n.get("news_score", n.get("score",0))
-            impact_n = _human_impact(raw_score)
-            if link:
-                lines.append(f"📰 <a href=\"{link}\">{title}</a> | <b>{_esc_html(impact_n)}</b>")
-            else:
-                lines.append(f"📰 {title} | <b>{_esc_html(impact_n)}</b>")
-            # price detail for this news
-            if price_details:
-                lines.append(f"<i>{_esc_html(price_details[0][:60])} • {_fmt_price(_p)}</i>")
-    # Time — minimal
-    lines.append(f"<i>{_esc_html(str(signal_info.get('timestamp','now'))[11:16])} • {signal_info.get('poll_interval',30)}m • DYOR</i>")
+        n = news_top[0]
+        title = _esc_html(n.get("title", "")[:90])
+        link = n.get("link", "")
+        raw_score = n.get("news_score", n.get("score", 0))
+        impact_n = _human_impact(raw_score)
+        if link:
+            lines.append(f"📰 <a href=\"{link}\">{title}</a> | <b>{_esc_html(impact_n)}</b> {_fmt_price(_p)} ({_ch:+.1f}%)")
+        else:
+            lines.append(f"📰 {title} | <b>{_esc_html(impact_n)}</b> {_fmt_price(_p)} ({_ch:+.1f}%)")
+    else:
+        lines.append(f"💰 {_fmt_price(_p)} ({_ch:+.1f}%) RSI:{rsi_str}")
+    lines.append(f"<i>WR {wr_str} • {_esc_html(tf_display)} • {_esc_html(str(signal_info.get('timestamp','now'))[11:16])} • DYOR</i>")
     return "\n".join(lines)

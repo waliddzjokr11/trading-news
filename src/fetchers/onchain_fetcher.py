@@ -66,9 +66,10 @@ def fetch_whale_alert(max_age_hours=4):
     cutoff = datetime.now(timezone.utc) - timedelta(hours=max_age_hours + 2)
     try:
         # Use feedparser directly (handles http)
+        # NOTE: whale-alert.io RSS is currently malformed XML — fails silently, onchain scores 0.
         feed = feedparser.parse(WHALE_RSS)
         if feed.bozo and not feed.entries:
-            logger.warning(f"Whale Alert RSS parse issue: {feed.bozo_exception}")
+            logger.debug(f"Whale Alert RSS unavailable (known-broken feed): {feed.bozo_exception}")
             # fallback to requests text
             try:
                 if _onchain_limiter:

@@ -40,8 +40,8 @@ FREE_API_CHECKS = [
         "critical": False,
     },
     {
-        "name": "CoinCap (fallback 2)",
-        "url": "https://api.coincap.io/v2/assets?limit=1",
+        "name": "Binance futures (fallback 2)",
+        "url": "https://fapi.binance.com/fapi/v1/ping",
         "critical": False,
     },
 ]

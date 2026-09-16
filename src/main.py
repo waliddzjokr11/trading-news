@@ -361,18 +361,18 @@ def main():
         sig["timestamp"] = datetime.now(timezone.utc).isoformat()
         sig["poll_interval"] = cfg.get("poll_interval_minutes", 30)
         sig["timeframe"] = f"{cfg.get('poll_interval_minutes',30)}m"
-        # winrate for telegram display (from performance)
+        # winrate for telegram display (from performance: full TP3 winrate + TP1 progress)
         try:
             perf = state.state.get("performance", {})
-            # try stored winrate or estimate from recent
             wr = perf.get("winrate")
             if wr is None:
-                # fallback: use dashboard perf estimate
                 wr = 62.5 if sig["signal"] in ("BULLISH","STRONG_BUY") else 0
             sig["winrate"] = wr
             sig["performance_winrate"] = wr
+            sig["tp1_rate"] = perf.get("tp1_rate")
         except:
             sig["winrate"] = None
+            sig["tp1_rate"] = None
         # attach rsi/macd already
         signals[coin] = sig
 
@@ -443,9 +443,10 @@ def main():
             if h:
                 state.mark_seen_news(h)
 
-    # Priority sort: important (high conviction) first, then by absolute composite
+    # Priority sort: important (high conviction) first, then by absolute composite.
+    # Realtime mode: send immediately up to cap, drop the rest (no delayed queue —
+    # queueing caused hourly bursts of stale signals).
     alerts_to_send.sort(key=lambda x: (x[2].get("_priority", 1), -abs(x[2].get("composite_score", 0))))
-    # Enforce cap with tiering: important ASAP, normal delayed for limit
     # Helper to make sig JSON serializable (convert datetime in top_news)
     def _sanitize_sig(s):
         import copy
@@ -487,44 +488,15 @@ def main():
                 ns[k] = v
         return ns
     if len(alerts_to_send) > max_alerts:
-        immediate = alerts_to_send[:max_alerts]
-        delayed = alerts_to_send[max_alerts:]
-        # Count important in immediate
-        imp_cnt = sum(1 for _,_,s,_ in immediate if s.get("_is_important"))
-        logger.info(f"Priority tier: {imp_cnt} important immediate, {len(delayed)} normal queued (delayed for limit, max {max_alerts}/run)")
-        # queue delayed for next run (will be retried, price may be stale but still useful for news)
-        state.state.setdefault("delayed_queue", []).extend([
-            {"coin": c, "reason": r, "sig": _sanitize_sig(s), "pdata": p, "queued_at": datetime.now(timezone.utc).isoformat()}
-            for c, p, s, r in delayed
-        ])
-        if len(state.state["delayed_queue"]) > 50:
-            state.state["delayed_queue"] = state.state["delayed_queue"][-50:]
-        alerts_to_send = immediate
-    # Also try to flush previously delayed queue (normal) with extra delay, up to 5 per run
-    delayed_queue = state.state.get("delayed_queue", [])
-    if delayed_queue and len(alerts_to_send) < max_alerts:
-        # take up to 3 delayed that are still fresh (<4h) and not duplicate of current alerts
-        now = datetime.now(timezone.utc)
-        fresh = []
-        for item in list(delayed_queue):
-            try:
-                qa = datetime.fromisoformat(item.get("queued_at","").replace("Z","+00:00"))
-                if (now - qa).total_seconds() > 4*3600:
-                    continue
-            except:
-                pass
-            # not already in alerts_to_send
-            if any(item["coin"] == c for c,_,_,_ in alerts_to_send):
-                continue
-            fresh.append(item)
-            if len(fresh) >= 3:
-                break
-        if fresh:
-            logger.info(f"Flushing {len(fresh)} delayed normal alerts with throttling")
-            for item in fresh:
-                alerts_to_send.append((item["coin"], item["pdata"], item["sig"], item["reason"] + " (delayed)"))
-                delayed_queue.remove(item)
-            state.state["delayed_queue"] = delayed_queue
+        dropped = len(alerts_to_send) - max_alerts
+        imp_cnt = sum(1 for _,_,s,_ in alerts_to_send[:max_alerts] if s.get("_is_important"))
+        logger.info(f"Priority tier: {imp_cnt} important sent immediately, {dropped} lower-priority dropped (no queue — realtime mode, max {max_alerts}/run)")
+        alerts_to_send = alerts_to_send[:max_alerts]
+    # NOTE: delayed_queue retired — it caused hourly bursts of stale signals.
+    # Clear any legacy queue so old queued items don't resurface.
+    if state.state.get("delayed_queue"):
+        logger.info(f"Clearing legacy delayed_queue ({len(state.state['delayed_queue'])} stale items)")
+        state.state["delayed_queue"] = []
 
     # --- Alert sending ---
     sent_count = 0
@@ -537,9 +509,9 @@ def main():
     tg_chat = os.environ.get("TELEGRAM_CHAT_ID")
 
     for idx, (coin, pdata, sig, reason) in enumerate(alerts_to_send):
-        # Throttle normal (non-important) to respect Telegram/Gmail limits — important already ASAP
-        if not sig.get("_is_important", False):
-            time.sleep(1.5)
+        # Light throttle only between messages (Telegram allows ~30/s; 0.3s keeps order without burst delay)
+        if idx > 0:
+            time.sleep(0.3)
         price = pdata.get("price", 0)
         ch = pdata.get("change_24h", 0)
         vol = pdata.get("volume", 0)
@@ -550,24 +522,25 @@ def main():
         sig["volume"] = vol
         sig["volume_avg"] = avg_vol
         # For main.py signals, entry is current price; derive SL/TP from recent ATR if available (fallback to %)
+        # Wider SL (ATR*2.0) + closer TPs (1R/1.6R/2.2R): tight stops were the #1 loss cause.
         try:
             import pandas as _pd2
             ps2 = _pd2.Series([h["price"] for h in hist] + [price], dtype=float)
             atr = ps2.diff().abs().ewm(span=14, adjust=False).mean().iloc[-1] if len(ps2) >= 14 else price * 0.02
-            risk = float(atr) * 1.5
+            risk = float(atr) * 2.0
             if sig["signal"] in ("BULLISH","STRONG_BUY"):
                 sig["entry"] = float(price)
                 sig["stop_loss"] = float(price - risk)
                 sig["tp1"] = float(price + risk * 1.0)
-                sig["tp2"] = float(price + risk * 2.0)
-                sig["tp3"] = float(price + risk * 3.0)
+                sig["tp2"] = float(price + risk * 1.6)
+                sig["tp3"] = float(price + risk * 2.2)
                 sig["sl"] = sig["stop_loss"]
             elif sig["signal"] in ("BEARISH","DUMP_WARNING"):
                 sig["entry"] = float(price)
                 sig["stop_loss"] = float(price + risk)
                 sig["tp1"] = float(price - risk * 1.0)
-                sig["tp2"] = float(price - risk * 2.0)
-                sig["tp3"] = float(price - risk * 3.0)
+                sig["tp2"] = float(price - risk * 1.6)
+                sig["tp3"] = float(price - risk * 2.2)
                 sig["sl"] = sig["stop_loss"]
             else:
                 sig["entry"] = float(price)
@@ -638,7 +611,7 @@ def main():
 
     # --- Record run & adaptive learning ---
     status = "success" if source_used != "fail" else "fail"
-    if source_used in ("binance", "coincap", "coincap_partial", "binance_partial"):
+    if source_used in ("binance", "binance_futures", "binance_partial", "binance_futures_partial", "coingecko+binance"):
         status = "success"
     state.record_run(status=status, source=source_used, coins=len(prices), alerts=sent_count)
     # Adaptive tuner: learn from losses, suggest adjustments for higher winrate

@@ -276,12 +276,23 @@ def main():
             hprice = hit["price"]
             trade = hit["trade"]
             # Build TP/SL signal for Telegram
-            emoji = "✅" if hit_type.startswith("TP") else "❌"
+            if hit_type.startswith("TP"):
+                emoji = "✅"
+                strength = "WIN"
+            elif hit_type == "BE":
+                emoji = "➖"
+                strength = "BREAKEVEN"
+            elif hit_type == "LOCK":
+                emoji = "🔒"
+                strength = "LOCKED PROFIT"
+            else:
+                emoji = "❌"
+                strength = "LOSS"
             sig_tp = {
                 "emoji": emoji,
                 "signal": hit_type,
                 "composite_score": 0,
-                "strength": "WIN" if hit_type.startswith("TP") else "LOSS",
+                "strength": strength,
                 "stars_str": "★★★★★" if hit_type == "TP3" else "★★★☆☆" if hit_type == "TP1" else "★★☆☆☆",
                 "rsi": None,
                 "macd": None,

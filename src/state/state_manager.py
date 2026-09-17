@@ -21,7 +21,7 @@ DEFAULT_STATE = {
     "run_count": 0,
     "open_trades": {},  # coin -> {entry, sl, tp1, tp2, tp3, signal, opened_at, entry_price}
     "trade_history": [],  # closed trades with result
-    "performance": {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0, "tp1_rate": 0},
+    "performance": {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0, "tp1_rate": 0, "be": 0, "locked": 0},
 }
 
 # Signal severity rank (lower = more bearish / urgent dump). For escalation check we use absolute severity distance.
@@ -316,11 +316,25 @@ class StateManager:
                 level = {"TP1": 1, "TP2": 2, "TP3": 3, "SL": -1}.get(hit, 0)
                 if hit.startswith("TP"):
                     trade["highest_tp_hit"] = max(trade.get("highest_tp_hit", 0), level)
+                    # breakeven/lock logic: protect profits as targets hit
+                    if hit == "TP1":
+                        trade["sl"] = trade["entry"]  # breakeven — worst case from here is scratch
+                        trade["sl_moved"] = "BE"
+                    elif hit == "TP2":
+                        trade["sl"] = trade["tp1"]  # lock TP1 profit
+                        trade["sl_moved"] = "LOCK"
+                elif hit == "SL":
+                    # classify exit: full loss vs breakeven scratch vs locked-profit exit
+                    moved = trade.get("sl_moved")
+                    if moved == "LOCK":
+                        hit = "LOCK"
+                    elif moved == "BE":
+                        hit = "BE"
                 hits.append({"coin": coin, "hit": hit, "price": cur_f, "trade": dict(trade)})
                 # update performance immediately for every TP touch (as per user: every single trade result)
                 self._record_trade_result(coin, hit, cur_f, trade)
-                # if SL or TP3, close trade
-                if hit in ("SL", "TP3"):
+                # if SL/BE/LOCK or TP3, close trade
+                if hit in ("SL", "BE", "LOCK", "TP3"):
                     to_close.append(coin)
                 else:
                     # TP1/TP2 keep open for higher TP
@@ -333,7 +347,7 @@ class StateManager:
 
     def _record_trade_result(self, coin, hit, price, trade):
         """Add to trade_history and update overall winrate — win only when ALL TPs hit (TP3), not just TP1."""
-        perf = self.state.setdefault("performance", {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0, "tp1_rate": 0})
+        perf = self.state.setdefault("performance", {"total_signals": 0, "wins": 0, "losses": 0, "by_coin": {}, "winrate": 0, "tp1": 0, "tp2": 0, "tp3": 0, "sl": 0, "suppressed": 0, "partial": 0, "tp1_rate": 0, "be": 0, "locked": 0})
         entry = {
             "timestamp": _now_iso(),
             "coin": coin,
@@ -363,12 +377,19 @@ class StateManager:
         elif hit == "SL":
             perf["losses"] = perf.get("losses", 0) + 1
             perf["sl"] = perf.get("sl", 0) + 1
+        elif hit == "BE":
+            # breakeven scratch after TP1 — neither win nor loss, tracked separately
+            perf["be"] = perf.get("be", 0) + 1
+        elif hit == "LOCK":
+            # stopped at locked TP1 profit — partial win, not a full win/loss
+            perf["partial"] = perf.get("partial", 0) + 1
+            perf["locked"] = perf.get("locked", 0) + 1
         total = perf.get("wins", 0) + perf.get("losses", 0)
         perf["total_signals"] = total
         perf["winrate"] = round(perf["wins"] / total * 100, 1) if total else 0
-        # TP1 progress rate: each trade touches TP1 at most once (guarded),
-        # so tp1 counter = # trades that reached at least TP1.
-        perf["tp1_rate"] = round(perf.get("tp1", 0) / total * 100, 1) if total else 0
+        # TP1 progress rate: tp1 counts touches (incl. still-open trades),
+        # so cap at 100 — it answers "are we reaching TP1?", winrate answers "do we finish?".
+        perf["tp1_rate"] = round(min(100, perf.get("tp1", 0) / total * 100), 1) if total else 0
         # learning: analyze loss patterns
         try:
             self._learn_from_loss(coin, hit, trade, price)

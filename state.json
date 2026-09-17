@@ -390,6 +390,11 @@
         "timestamp": "2026-09-17T23:54:03.631312+00:00",
         "price": 76384.0,
         "volume": 23707487566.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.429996+00:00",
+        "price": 76409.0,
+        "volume": 23703382370.0
       }
     ],
     "ethereum": [
@@ -782,6 +787,11 @@
         "timestamp": "2026-09-17T23:54:03.631326+00:00",
         "price": 2446.87,
         "volume": 11984083905.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430020+00:00",
+        "price": 2447.65,
+        "volume": 11989046799.0
       }
     ],
     "ripple": [
@@ -1174,6 +1184,11 @@
         "timestamp": "2026-09-17T23:54:03.631333+00:00",
         "price": 1.3,
         "volume": 2335000422.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430040+00:00",
+        "price": 1.3,
+        "volume": 2328969837.0
       }
     ],
     "binancecoin": [
@@ -1566,6 +1581,11 @@
         "timestamp": "2026-09-17T23:54:03.631329+00:00",
         "price": 738.07,
         "volume": 958757402.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430031+00:00",
+        "price": 738.13,
+        "volume": 962461656.0
       }
     ],
     "solana": [
@@ -1958,6 +1978,11 @@
         "timestamp": "2026-09-17T23:54:03.631336+00:00",
         "price": 101.58,
         "volume": 3235314516.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430048+00:00",
+        "price": 101.63,
+        "volume": 3238334257.0
       }
     ],
     "tron": [
@@ -2350,6 +2375,11 @@
         "timestamp": "2026-09-17T23:54:03.631339+00:00",
         "price": 0.334606,
         "volume": 342538961.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430056+00:00",
+        "price": 0.334679,
+        "volume": 341185223.0
       }
     ],
     "chainlink": [
@@ -2742,6 +2772,11 @@
         "timestamp": "2026-09-17T23:54:03.631365+00:00",
         "price": 11.39,
         "volume": 350030464.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430101+00:00",
+        "price": 11.4,
+        "volume": 350331873.0
       }
     ],
     "cardano": [
@@ -3134,6 +3169,11 @@
         "timestamp": "2026-09-17T23:54:03.631368+00:00",
         "price": 0.202523,
         "volume": 367110243.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430108+00:00",
+        "price": 0.202666,
+        "volume": 367820887.0
       }
     ],
     "stellar": [
@@ -3521,6 +3561,11 @@
         "timestamp": "2026-09-17T23:54:03.631370+00:00",
         "price": 0.183557,
         "volume": 167808919.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430114+00:00",
+        "price": 0.183567,
+        "volume": 167081334.0
       }
     ],
     "bitcoin-cash": [
@@ -3908,6 +3953,11 @@
         "timestamp": "2026-09-17T23:54:03.631375+00:00",
         "price": 233.76,
         "volume": 189491377.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430124+00:00",
+        "price": 233.86,
+        "volume": 190771121.0
       }
     ],
     "litecoin": [
@@ -4295,6 +4345,11 @@
         "timestamp": "2026-09-17T23:54:03.631377+00:00",
         "price": 53.94,
         "volume": 213616999.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430129+00:00",
+        "price": 53.93,
+        "volume": 213561301.0
       }
     ],
     "hedera-hashgraph": [
@@ -4682,6 +4737,11 @@
         "timestamp": "2026-09-17T23:54:03.631383+00:00",
         "price": 0.074597,
         "volume": 70734233.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430144+00:00",
+        "price": 0.074625,
+        "volume": 67852652.0
       }
     ],
     "sui": [
@@ -5069,6 +5129,11 @@
         "timestamp": "2026-09-17T23:54:03.631385+00:00",
         "price": 0.740817,
         "volume": 418118893.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430149+00:00",
+        "price": 0.74121,
+        "volume": 418776997.0
       }
     ],
     "avalanche-2": [
@@ -5461,6 +5526,11 @@
         "timestamp": "2026-09-17T23:54:03.631381+00:00",
         "price": 7.61,
         "volume": 283316010.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430139+00:00",
+        "price": 7.61,
+        "volume": 276965554.0
       }
     ],
     "shiba-inu": [
@@ -5848,6 +5918,11 @@
         "timestamp": "2026-09-17T23:54:03.631455+00:00",
         "price": 5.14e-06,
         "volume": 87367386.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430259+00:00",
+        "price": 5.15e-06,
+        "volume": 87797017.0
       }
     ],
     "near": [
@@ -6235,6 +6310,11 @@
         "timestamp": "2026-09-17T23:54:03.631379+00:00",
         "price": 3.16,
         "volume": 1292529754.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430134+00:00",
+        "price": 3.16,
+        "volume": 1285864543.0
       }
     ],
     "pepe": [
@@ -6622,6 +6702,11 @@
         "timestamp": "2026-09-17T23:54:03.631401+00:00",
         "price": 3.61e-06,
         "volume": 235578828.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430185+00:00",
+        "price": 3.61e-06,
+        "volume": 235658190.0
       }
     ],
     "polkadot": [
@@ -7009,6 +7094,11 @@
         "timestamp": "2026-09-17T23:54:03.631397+00:00",
         "price": 1.08,
         "volume": 250895979.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430177+00:00",
+        "price": 1.082,
+        "volume": 252815530.0
       }
     ],
     "internet-computer": [
@@ -7396,6 +7486,11 @@
         "timestamp": "2026-09-17T23:54:03.631403+00:00",
         "price": 2.63,
         "volume": 32910632.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430188+00:00",
+        "price": 2.63,
+        "volume": 32876810.0
       }
     ],
     "polygon-ecosystem-token": [
@@ -7783,6 +7878,11 @@
         "timestamp": "2026-09-17T23:54:03.631408+00:00",
         "price": 0.097854,
         "volume": 112759919.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430193+00:00",
+        "price": 0.097998,
+        "volume": 114101539.0
       }
     ],
     "ethereum-classic": [
@@ -8170,6 +8270,11 @@
         "timestamp": "2026-09-17T23:54:03.631459+00:00",
         "price": 7.5,
         "volume": 48894370.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430265+00:00",
+        "price": 7.52,
+        "volume": 48897066.0
       }
     ],
     "algorand": [
@@ -8557,6 +8662,11 @@
         "timestamp": "2026-09-17T23:54:03.631462+00:00",
         "price": 0.090343,
         "volume": 38128427.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430270+00:00",
+        "price": 0.09045,
+        "volume": 36883733.0
       }
     ],
     "cosmos": [
@@ -8944,6 +9054,11 @@
         "timestamp": "2026-09-17T23:54:03.631461+00:00",
         "price": 1.58,
         "volume": 42667024.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430267+00:00",
+        "price": 1.58,
+        "volume": 42650724.0
       }
     ],
     "arbitrum": [
@@ -9331,6 +9446,11 @@
         "timestamp": "2026-09-17T23:54:03.631406+00:00",
         "price": 0.17761,
         "volume": 410373153.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430191+00:00",
+        "price": 0.177395,
+        "volume": 409449786.0
       }
     ],
     "aptos": [
@@ -9718,6 +9838,11 @@
         "timestamp": "2026-09-17T23:54:03.631421+00:00",
         "price": 0.596644,
         "volume": 66130742.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430211+00:00",
+        "price": 0.597093,
+        "volume": 66046984.0
       }
     ],
     "vechain": [
@@ -10105,6 +10230,11 @@
         "timestamp": "2026-09-17T23:54:03.631464+00:00",
         "price": 0.00735752,
         "volume": 9754606.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430273+00:00",
+        "price": 0.00736914,
+        "volume": 9246858.0
       }
     ],
     "celestia": [
@@ -10492,6 +10622,11 @@
         "timestamp": "2026-09-17T23:54:03.631430+00:00",
         "price": 0.352368,
         "volume": 36543039.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430225+00:00",
+        "price": 0.353332,
+        "volume": 36329190.0
       }
     ],
     "sei-network": [
@@ -10879,6 +11014,11 @@
         "timestamp": "2026-09-17T23:54:03.631474+00:00",
         "price": 0.04406173,
         "volume": 50316386.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430286+00:00",
+        "price": 0.04409833,
+        "volume": 50150668.0
       }
     ],
     "floki": [
@@ -11920,6 +12060,11 @@
         "timestamp": "2026-09-17T23:54:03.631438+00:00",
         "price": 0.101007,
         "volume": 53395331.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430236+00:00",
+        "price": 0.100992,
+        "volume": 53482493.0
       }
     ],
     "iota": [
@@ -17356,6 +17501,11 @@
         "timestamp": "2026-09-17T23:54:03.631342+00:00",
         "price": 0.081714,
         "volume": 567713414.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430063+00:00",
+        "price": 0.081735,
+        "volume": 567794584.0
       }
     ],
     "uniswap": [
@@ -17743,6 +17893,11 @@
         "timestamp": "2026-09-17T23:54:03.631373+00:00",
         "price": 7.78,
         "volume": 1250870102.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430119+00:00",
+        "price": 7.82,
+        "volume": 1259052009.0
       }
     ],
     "bittensor": [
@@ -18130,6 +18285,11 @@
         "timestamp": "2026-09-17T23:54:03.631388+00:00",
         "price": 232.39,
         "volume": 158424938.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430153+00:00",
+        "price": 232.44,
+        "volume": 158770994.0
       }
     ],
     "ondo-finance": [
@@ -18517,6 +18677,11 @@
         "timestamp": "2026-09-17T23:54:03.631400+00:00",
         "price": 0.371487,
         "volume": 237454624.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430181+00:00",
+        "price": 0.372149,
+        "volume": 237929996.0
       }
     ],
     "ethena": [
@@ -19630,6 +19795,11 @@
         "timestamp": "2026-09-17T23:54:03.631415+00:00",
         "price": 0.625665,
         "volume": 49328752.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430202+00:00",
+        "price": 0.626047,
+        "volume": 49224694.0
       }
     ],
     "filecoin": [
@@ -20017,6 +20187,11 @@
         "timestamp": "2026-09-17T23:54:03.631413+00:00",
         "price": 0.839412,
         "volume": 109133800.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430199+00:00",
+        "price": 0.840271,
+        "volume": 109186060.0
       }
     ],
     "injective-protocol": [
@@ -20404,6 +20579,11 @@
         "timestamp": "2026-09-17T23:54:03.631417+00:00",
         "price": 5.74,
         "volume": 84392505.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430205+00:00",
+        "price": 5.73,
+        "volume": 86702567.0
       }
     ],
     "curve-dao-token": [
@@ -20791,6 +20971,11 @@
         "timestamp": "2026-09-17T23:54:03.631423+00:00",
         "price": 0.327671,
         "volume": 70183172.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430214+00:00",
+        "price": 0.327901,
+        "volume": 70102451.0
       }
     ],
     "pyth-network": [
@@ -21178,6 +21363,11 @@
         "timestamp": "2026-09-17T23:54:03.631470+00:00",
         "price": 0.05616,
         "volume": 31961147.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430281+00:00",
+        "price": 0.056184,
+        "volume": 31473598.0
       }
     ],
     "fetch-ai": [
@@ -21565,6 +21755,11 @@
         "timestamp": "2026-09-17T23:54:03.631426+00:00",
         "price": 0.173363,
         "volume": 85760511.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430219+00:00",
+        "price": 0.173441,
+        "volume": 86931971.0
       }
     ],
     "layerzero": [
@@ -21952,6 +22147,11 @@
         "timestamp": "2026-09-17T23:54:03.631428+00:00",
         "price": 1.042,
         "volume": 32480825.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430222+00:00",
+        "price": 1.043,
+        "volume": 32643501.0
       }
     ],
     "pendle": [
@@ -22666,6 +22866,11 @@
         "timestamp": "2026-09-17T23:54:03.631476+00:00",
         "price": 0.445941,
         "volume": 27003598.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430290+00:00",
+        "price": 0.446421,
+        "volume": 25831818.0
       }
     ],
     "bonk": [
@@ -23053,6 +23258,11 @@
         "timestamp": "2026-09-17T23:54:03.631436+00:00",
         "price": 2.73e-06,
         "volume": 33544427.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430233+00:00",
+        "price": 2.73e-06,
+        "volume": 33533815.0
       }
     ],
     "jasmycoin": [
@@ -24094,6 +24304,11 @@
         "timestamp": "2026-09-17T23:54:03.631440+00:00",
         "price": 0.20145,
         "volume": 21580969.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430238+00:00",
+        "price": 0.201565,
+        "volume": 21588817.0
       }
     ],
     "theta-token": [
@@ -25462,6 +25677,11 @@
         "timestamp": "2026-09-17T23:54:03.631478+00:00",
         "price": 2.65,
         "volume": 9610038.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430295+00:00",
+        "price": 2.65,
+        "volume": 9639283.0
       }
     ],
     "decentraland": [
@@ -27157,6 +27377,11 @@
         "timestamp": "2026-09-17T23:54:03.631483+00:00",
         "price": 0.001835,
         "volume": 41768844.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430302+00:00",
+        "price": 0.00184124,
+        "volume": 41949047.0
       }
     ],
     "qtum": [
@@ -28198,6 +28423,11 @@
         "timestamp": "2026-09-17T23:54:03.631481+00:00",
         "price": 0.09648,
         "volume": 22386544.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430299+00:00",
+        "price": 0.096377,
+        "volume": 22116234.0
       }
     ],
     "wormhole": [
@@ -28912,6 +29142,11 @@
         "timestamp": "2026-09-17T23:54:03.631489+00:00",
         "price": 0.00289739,
         "volume": 4539432.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430309+00:00",
+        "price": 0.00289623,
+        "volume": 4535219.0
       }
     ],
     "enjincoin": [
@@ -30280,6 +30515,11 @@
         "timestamp": "2026-09-17T23:54:03.631447+00:00",
         "price": 0.00635711,
         "volume": 8258504.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430247+00:00",
+        "price": 0.00636403,
+        "volume": 8345134.0
       }
     ],
     "celo": [
@@ -31537,6 +31777,11 @@
         "timestamp": "2026-09-17T23:54:03.631444+00:00",
         "price": 0.444282,
         "volume": 75414687.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430245+00:00",
+        "price": 0.442734,
+        "volume": 74639650.0
       }
     ],
     "singularitynet": [
@@ -32794,6 +33039,11 @@
         "timestamp": "2026-09-17T23:54:03.631452+00:00",
         "price": 0.00031298,
         "volume": 28755.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430253+00:00",
+        "price": 0.00031513,
+        "volume": 28823.0
       }
     ],
     "aave": [
@@ -33835,6 +34085,11 @@
         "timestamp": "2026-09-17T23:54:03.631410+00:00",
         "price": 2.44,
         "volume": 97916077.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430196+00:00",
+        "price": 2.44,
+        "volume": 97889884.0
       }
     ],
     "lido-dao": [
@@ -34222,6 +34477,11 @@
         "timestamp": "2026-09-17T23:54:03.631432+00:00",
         "price": 0.359528,
         "volume": 35683283.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430227+00:00",
+        "price": 0.359766,
+        "volume": 36338066.0
       }
     ],
     "bittorrent": [
@@ -41437,6 +41697,11 @@
         "timestamp": "2026-09-17T23:54:03.631449+00:00",
         "price": 0.00079767,
         "volume": 24285343.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430250+00:00",
+        "price": 0.00080235,
+        "volume": 25909508.0
       }
     ],
     "storj": [
@@ -45742,6 +46007,11 @@
         "timestamp": "2026-09-17T23:54:03.631468+00:00",
         "price": 0.251853,
         "volume": 19084874.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430278+00:00",
+        "price": 0.251854,
+        "volume": 16879753.0
       }
     ],
     "decred": [
@@ -49543,6 +49813,11 @@
         "timestamp": "2026-09-17T23:54:03.631491+00:00",
         "price": 0.137056,
         "volume": 4531030.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430312+00:00",
+        "price": 0.137658,
+        "volume": 4565193.0
       }
     ],
     "stratis": [
@@ -50074,6 +50349,11 @@
         "timestamp": "2026-09-17T23:54:03.631493+00:00",
         "price": 0.02642809,
         "volume": 8228176.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430314+00:00",
+        "price": 0.0264924,
+        "volume": 8199324.0
       }
     ],
     "everipedia": [
@@ -53554,6 +53834,11 @@
         "timestamp": "2026-09-17T23:54:03.631395+00:00",
         "price": 4342.27,
         "volume": 172469148.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430170+00:00",
+        "price": 4343.92,
+        "volume": 172175942.0
       }
     ],
     "aster-2": [
@@ -53871,6 +54156,11 @@
         "timestamp": "2026-09-17T23:54:03.631390+00:00",
         "price": 0.741695,
         "volume": 108109937.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430159+00:00",
+        "price": 0.743139,
+        "volume": 108565116.0
       }
     ],
     "world-liberty-financial": [
@@ -54445,6 +54735,11 @@
         "timestamp": "2026-09-17T23:54:03.631393+00:00",
         "price": 0.00408827,
         "volume": 165853708.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430164+00:00",
+        "price": 0.00409201,
+        "volume": 167005345.0
       }
     ],
     "morpho": [
@@ -54762,6 +55057,11 @@
         "timestamp": "2026-09-17T23:54:03.631457+00:00",
         "price": 2.22,
         "volume": 28041748.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430262+00:00",
+        "price": 2.22,
+        "volume": 27778463.0
       }
     ],
     "sky": [
@@ -55593,6 +55893,11 @@
         "timestamp": "2026-09-17T23:54:03.631425+00:00",
         "price": 0.00727243,
         "volume": 163160045.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430216+00:00",
+        "price": 0.00727251,
+        "volume": 166608584.0
       }
     ],
     "official-trump": [
@@ -55910,6 +56215,11 @@
         "timestamp": "2026-09-17T23:54:03.631419+00:00",
         "price": 1.95,
         "volume": 151773855.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430208+00:00",
+        "price": 1.95,
+        "volume": 152015462.0
       }
     ],
     "aerodrome-finance": [
@@ -56227,6 +56537,11 @@
         "timestamp": "2026-09-17T23:54:03.631466+00:00",
         "price": 0.586249,
         "volume": 49184982.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430275+00:00",
+        "price": 0.58703,
+        "volume": 49079309.0
       }
     ],
     "virtual-protocol": [
@@ -56544,6 +56859,11 @@
         "timestamp": "2026-09-17T23:54:03.631472+00:00",
         "price": 0.612802,
         "volume": 47776054.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430284+00:00",
+        "price": 0.613762,
+        "volume": 47878377.0
       }
     ],
     "sun-token": [
@@ -57889,6 +58209,11 @@
         "timestamp": "2026-09-17T23:54:03.631434+00:00",
         "price": 0.087303,
         "volume": 56267376.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430230+00:00",
+        "price": 0.087412,
+        "volume": 53395814.0
       }
     ],
     "ethereum-name-service": [
@@ -61033,6 +61358,11 @@
         "timestamp": "2026-09-17T23:54:03.631442+00:00",
         "price": 0.050102,
         "volume": 12807272.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430242+00:00",
+        "price": 0.050203,
+        "volume": 12837638.0
       }
     ],
     "meteora": [
@@ -64948,6 +65278,11 @@
         "timestamp": "2026-09-17T23:54:03.631486+00:00",
         "price": 4.19,
         "volume": 13853319.0
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430305+00:00",
+        "price": 4.19,
+        "volume": 15491459.0
       }
     ],
     "re": [
@@ -66552,6 +66887,11 @@
         "timestamp": "2026-09-17T23:54:03.631453+00:00",
         "price": 0.00020837,
         "volume": 203.23
+      },
+      {
+        "timestamp": "2026-09-17T23:58:18.430256+00:00",
+        "price": 0.00020833,
+        "volume": 203.2
       }
     ]
   },
@@ -67151,8 +67491,8 @@
     "c1f712029a28fd54",
     "3d5d58ec950fb1c4"
   ],
-  "last_run": "2026-09-17T23:54:05.488249+00:00",
-  "run_count": 78,
+  "last_run": "2026-09-17T23:58:18.573435+00:00",
+  "run_count": 79,
   "alert_history": [
     {
       "timestamp": "2026-09-17T14:51:58.852104+00:00",
@@ -69352,6 +69692,571 @@
       "signal": "BULLISH",
       "score": 1.65,
       "timestamp": "2026-09-17T23:54:05.480987+00:00"
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.433783+00:00",
+      "coin": "bitcoin",
+      "signal": "NEUTRAL",
+      "score": 0.0,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.00 < 0.4 required",
+        "price 76409.0 below EMA200 78549.08"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.435998+00:00",
+      "coin": "ethereum",
+      "signal": "NEUTRAL",
+      "score": 0.0,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.00 < 0.4 required",
+        "price 2447.65 below EMA200 2461.78"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.438096+00:00",
+      "coin": "binancecoin",
+      "signal": "NEUTRAL",
+      "score": -0.83,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 738.13 above EMA200 701.65"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.440210+00:00",
+      "coin": "ripple",
+      "signal": "NEUTRAL",
+      "score": 0.0,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.00 < 0.4 required",
+        "price 1.3 below EMA200 1.42"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.446134+00:00",
+      "coin": "dogecoin",
+      "signal": "NEUTRAL",
+      "score": 0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.081735 below EMA200 0.09"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.448193+00:00",
+      "coin": "chainlink",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 11.4 below EMA200 11.45"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.450162+00:00",
+      "coin": "cardano",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.202666 below EMA200 0.21"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.452128+00:00",
+      "coin": "stellar",
+      "signal": "NEUTRAL",
+      "score": 1.1,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.183567 below EMA200 0.19"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.454083+00:00",
+      "coin": "uniswap",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.456065+00:00",
+      "coin": "bitcoin-cash",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 233.86 below EMA200 257.65"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.458018+00:00",
+      "coin": "litecoin",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.459937+00:00",
+      "coin": "near",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.463721+00:00",
+      "coin": "hedera-hashgraph",
+      "signal": "NEUTRAL",
+      "score": 0.0,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.00 < 0.4 required",
+        "price 0.074625 below EMA200 0.08"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.465672+00:00",
+      "coin": "sui",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.74121 below EMA200 0.77"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.471310+00:00",
+      "coin": "pump-fun",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.00409201 below EMA200 0.00"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.473233+00:00",
+      "coin": "pax-gold",
+      "signal": "NEUTRAL",
+      "score": 0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 4343.92 below EMA200 4523.16"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.475172+00:00",
+      "coin": "polkadot",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.479001+00:00",
+      "coin": "pepe",
+      "signal": "NEUTRAL",
+      "score": 1.1,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 3.61e-06 below EMA200 0.00"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.482772+00:00",
+      "coin": "arbitrum",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.484724+00:00",
+      "coin": "polygon-ecosystem-token",
+      "signal": "NEUTRAL",
+      "score": 1.1,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.097998 below EMA200 0.11"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.486670+00:00",
+      "coin": "pancakeswap-token",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.492272+00:00",
+      "coin": "injective-protocol",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.494219+00:00",
+      "coin": "official-trump",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 1.95 below EMA200 2.25"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.498290+00:00",
+      "coin": "curve-dao-token",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.327901 below EMA200 0.33"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.500228+00:00",
+      "coin": "pudgy-penguins",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.00727251 below EMA200 0.01"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.502170+00:00",
+      "coin": "fetch-ai",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.504092+00:00",
+      "coin": "layerzero",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 1.043 below EMA200 1.07"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.506036+00:00",
+      "coin": "celestia",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.353332 below EMA200 0.36"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.507954+00:00",
+      "coin": "lido-dao",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.359766 below EMA200 0.37"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.509891+00:00",
+      "coin": "plasma",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.087412 below EMA200 0.09"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.511853+00:00",
+      "coin": "bonk",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 2.73e-06 below EMA200 0.00"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.515631+00:00",
+      "coin": "eigenlayer",
+      "signal": "NEUTRAL",
+      "score": 1.1,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.201565 below EMA200 0.21"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.517577+00:00",
+      "coin": "zama",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.050203 below EMA200 0.05"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.519536+00:00",
+      "coin": "lisk",
+      "signal": "BEARISH",
+      "score": -1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.442734 above EMA200 0.15"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.521583+00:00",
+      "coin": "astar",
+      "signal": "NEUTRAL",
+      "score": -0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.00636403 above EMA200 0.01"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.523617+00:00",
+      "coin": "iostoken",
+      "signal": "BEARISH",
+      "score": -1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.00080235 above EMA200 0.00"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.525596+00:00",
+      "coin": "jupiter",
+      "signal": "NEUTRAL",
+      "score": 1.1,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.00031513 below EMA200 0.00"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.528252+00:00",
+      "coin": "shiba-inu",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 5.15e-06 below EMA200 0.00"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.530220+00:00",
+      "coin": "morpho",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 2.22 below EMA200 2.49"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.532243+00:00",
+      "coin": "ethereum-classic",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 7.52 below EMA200 7.67"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.534185+00:00",
+      "coin": "cosmos",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.536154+00:00",
+      "coin": "algorand",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.09045 below EMA200 0.09"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.539894+00:00",
+      "coin": "aerodrome-finance",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.541826+00:00",
+      "coin": "blockstack",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.251854 below EMA200 0.26"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.545589+00:00",
+      "coin": "virtual-protocol",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.613762 below EMA200 0.71"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.547536+00:00",
+      "coin": "sei-network",
+      "signal": "BULLISH",
+      "score": 1.65,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.04409833 below EMA200 0.05"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.549459+00:00",
+      "coin": "jito-governance-token",
+      "signal": "NEUTRAL",
+      "score": 1.1,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.446421 below EMA200 0.50"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.553180+00:00",
+      "coin": "mina-protocol",
+      "signal": "NEUTRAL",
+      "score": 0.28,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.28 < 0.4 required"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.558764+00:00",
+      "coin": "zilliqa",
+      "signal": "NEUTRAL",
+      "score": -0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.00289623 above EMA200 0.00"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.560676+00:00",
+      "coin": "ark",
+      "signal": "NEUTRAL",
+      "score": -0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.137658 above EMA200 0.11"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.562587+00:00",
+      "coin": "civic",
+      "signal": "NEUTRAL",
+      "score": -0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.0264924 above EMA200 0.02"
+      ],
+      "tv_stars": null
     }
   ],
   "run_history": [
@@ -69900,6 +70805,13 @@
       "source": "coingecko",
       "coins": 68,
       "alerts": 3
+    },
+    {
+      "timestamp": "2026-09-17T23:58:18.573442+00:00",
+      "status": "success",
+      "source": "coingecko",
+      "coins": 68,
+      "alerts": 0
     }
   ],
   "tv_signals": [],
@@ -69908,7 +70820,7 @@
     "wins": 39,
     "losses": 122,
     "by_coin": {},
-    "suppressed": 6786,
+    "suppressed": 6837,
     "sl": 122,
     "winrate": 24.2,
     "partial": 63,

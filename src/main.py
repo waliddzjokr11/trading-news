@@ -377,7 +377,11 @@ def main():
             # apply to price_res copy
             price_res = {**price_res, "score": price_res["score"] + jitter, "details": price_res["details"] + [f"dry_jitter {jitter:+}"]}
 
-        sig = engine_evaluate(coin, price_res, news_res, onchain_res, cfg)
+        try:
+            sig = engine_evaluate(coin, price_res, news_res, onchain_res, cfg)
+        except Exception as e:
+            logger.warning(f"signal engine {coin} fail {e} — skipping coin")
+            continue
         sig["timestamp"] = datetime.now(timezone.utc).isoformat()
         sig["poll_interval"] = cfg.get("poll_interval_minutes", 30)
         sig["timeframe"] = f"{cfg.get('poll_interval_minutes',30)}m"
@@ -573,7 +577,11 @@ def main():
         if email_enabled:
             html = build_html(coin, price, ch, vol, avg_vol, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
             html = html.replace("Rule-based", "Rule-based")  # already includes
-        tg_msg = format_telegram(coin, price, ch, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
+        try:
+            tg_msg = format_telegram(coin, price, ch, sig, sig.get("details", {}).get("price", []), sig.get("top_news", []), sig.get("onchain_events", []))
+        except Exception as e:
+            logger.warning(f"Alert format {coin} fail {e} — skipping alert")
+            continue
 
         if args.dry_run:
             try:

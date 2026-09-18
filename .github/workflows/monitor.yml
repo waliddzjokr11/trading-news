@@ -94,9 +94,10 @@ jobs:
 
       # GitHub throttles cron schedules (our */5 was firing every ~4h).
       # Chain the next run via API so signals stay realtime (~5 min cadence).
+      # Chains even after failure so one bad run never breaks the loop.
       # To stop the loop, disable this workflow. Cron remains as backup restart.
       - name: Chain next run (realtime loop)
-        if: success()
+        if: ${{ !cancelled() }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

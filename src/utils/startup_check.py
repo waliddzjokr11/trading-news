@@ -116,5 +116,7 @@ def run_startup_check(dry_run=False):
         print("  Tip: run with --dry-run to bypass secret checks for testing")
     print("="*50 + "\n")
 
+    # NOTE: never exit — the monitor has fallback chains (Binance spot/futures)
+    # and handles fetch failures gracefully. A flaky ping must not kill a run.
     if not all_critical_ok and not dry_run:
-        sys.exit(1)
+        print("  [WARN] continuing anyway — fallback chain will handle outages")

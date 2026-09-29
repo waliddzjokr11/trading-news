@@ -110604,8 +110604,8 @@
     "8e3496b53c0078ed",
     "49bd066e5e701e05"
   ],
-  "last_run": "2026-09-29T17:32:39.171340+00:00",
-  "run_count": 4156,
+  "last_run": "2026-09-29T17:37:05.614147+00:00",
+  "run_count": 4157,
   "alert_history": [
     {
       "timestamp": "2026-09-29T03:12:06.414970+00:00",
@@ -112828,14 +112828,6 @@
   ],
   "run_history": [
     {
-      "timestamp": "2026-09-29T10:00:31.851917+00:00",
-      "status": "fail",
-      "source": "none",
-      "coins": 0,
-      "alerts": 0,
-      "error": "all price sources failed"
-    },
-    {
       "timestamp": "2026-09-29T10:04:58.838965+00:00",
       "status": "success",
       "source": "binance",
@@ -113619,6 +113611,14 @@
     },
     {
       "timestamp": "2026-09-29T17:32:39.171356+00:00",
+      "status": "fail",
+      "source": "none",
+      "coins": 0,
+      "alerts": 0,
+      "error": "all price sources failed"
+    },
+    {
+      "timestamp": "2026-09-29T17:37:05.614164+00:00",
       "status": "fail",
       "source": "none",
       "coins": 0,

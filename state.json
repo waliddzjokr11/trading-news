@@ -110597,8 +110597,8 @@
     "8e3496b53c0078ed",
     "49bd066e5e701e05"
   ],
-  "last_run": "2026-09-29T19:41:48.798873+00:00",
-  "run_count": 4185,
+  "last_run": "2026-09-29T19:46:17.040103+00:00",
+  "run_count": 4186,
   "alert_history": [
     {
       "timestamp": "2026-09-29T03:12:06.414970+00:00",
@@ -112821,14 +112821,6 @@
   ],
   "run_history": [
     {
-      "timestamp": "2026-09-29T12:10:55.556609+00:00",
-      "status": "fail",
-      "source": "none",
-      "coins": 0,
-      "alerts": 0,
-      "error": "all price sources failed"
-    },
-    {
       "timestamp": "2026-09-29T12:15:21.589515+00:00",
       "status": "fail",
       "source": "none",
@@ -113613,6 +113605,14 @@
     },
     {
       "timestamp": "2026-09-29T19:41:48.798892+00:00",
+      "status": "fail",
+      "source": "none",
+      "coins": 0,
+      "alerts": 0,
+      "error": "all price sources failed"
+    },
+    {
+      "timestamp": "2026-09-29T19:46:17.040121+00:00",
       "status": "fail",
       "source": "none",
       "coins": 0,

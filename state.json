@@ -110565,7 +110565,6 @@
     }
   },
   "seen_news_hashes": [
-    "469305e5fdfe4f70",
     "7564b49a48eddd1d",
     "d2035ef616fb7772",
     "96a4f53258562a3d",
@@ -110608,8 +110607,8 @@
     "8e3496b53c0078ed",
     "49bd066e5e701e05"
   ],
-  "last_run": "2026-09-29T16:19:49.334509+00:00",
-  "run_count": 4140,
+  "last_run": "2026-09-29T16:24:30.449036+00:00",
+  "run_count": 4141,
   "alert_history": [
     {
       "timestamp": "2026-09-29T03:12:06.414970+00:00",
@@ -112832,14 +112831,6 @@
   ],
   "run_history": [
     {
-      "timestamp": "2026-09-29T08:49:45.835555+00:00",
-      "status": "fail",
-      "source": "none",
-      "coins": 0,
-      "alerts": 0,
-      "error": "all price sources failed"
-    },
-    {
       "timestamp": "2026-09-29T08:54:04.506359+00:00",
       "status": "fail",
       "source": "none",
@@ -113628,6 +113619,14 @@
       "coins": 0,
       "alerts": 0,
       "error": "all price sources failed"
+    },
+    {
+      "timestamp": "2026-09-29T16:24:30.449054+00:00",
+      "status": "fail",
+      "source": "none",
+      "coins": 0,
+      "alerts": 0,
+      "error": "all price sources failed"
     }
   ],
   "tv_signals": [],
@@ -113648,10 +113647,6 @@
     "be": 16
   },
   "seen_news_meta": {
-    "469305e5fdfe4f70": {
-      "timestamp": "2026-09-28T16:20:13.870390+00:00",
-      "count": 15
-    },
     "7564b49a48eddd1d": {
       "timestamp": "2026-09-28T16:28:13.926123+00:00",
       "count": 18

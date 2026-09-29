@@ -110598,8 +110598,8 @@
     "f1d1beba3b0e9c99",
     "1462b41d877af906"
   ],
-  "last_run": "2026-09-29T07:34:04.869178+00:00",
-  "run_count": 4024,
+  "last_run": "2026-09-29T07:38:37.099905+00:00",
+  "run_count": 4025,
   "alert_history": [
     {
       "timestamp": "2026-09-29T03:07:56.168323+00:00",
@@ -112859,13 +112859,6 @@
   ],
   "run_history": [
     {
-      "timestamp": "2026-09-29T00:28:16.939061+00:00",
-      "status": "success",
-      "source": "coingecko",
-      "coins": 68,
-      "alerts": 0
-    },
-    {
       "timestamp": "2026-09-29T00:32:20.130167+00:00",
       "status": "success",
       "source": "coingecko",
@@ -113609,6 +113602,14 @@
     },
     {
       "timestamp": "2026-09-29T07:34:04.869196+00:00",
+      "status": "fail",
+      "source": "none",
+      "coins": 0,
+      "alerts": 0,
+      "error": "all price sources failed"
+    },
+    {
+      "timestamp": "2026-09-29T07:38:37.099924+00:00",
       "status": "fail",
       "source": "none",
       "coins": 0,

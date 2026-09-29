@@ -110600,8 +110600,8 @@
     "f1d1beba3b0e9c99",
     "1462b41d877af906"
   ],
-  "last_run": "2026-09-29T05:51:55.054017+00:00",
-  "run_count": 4001,
+  "last_run": "2026-09-29T05:56:20.970480+00:00",
+  "run_count": 4002,
   "alert_history": [
     {
       "timestamp": "2026-09-29T03:07:56.168323+00:00",
@@ -112861,13 +112861,6 @@
   ],
   "run_history": [
     {
-      "timestamp": "2026-09-28T22:52:07.994266+00:00",
-      "status": "success",
-      "source": "coingecko",
-      "coins": 68,
-      "alerts": 0
-    },
-    {
       "timestamp": "2026-09-28T22:56:09.601483+00:00",
       "status": "success",
       "source": "coingecko",
@@ -113593,6 +113586,14 @@
       "source": "binance",
       "coins": 70,
       "alerts": 2
+    },
+    {
+      "timestamp": "2026-09-29T05:56:20.970497+00:00",
+      "status": "fail",
+      "source": "none",
+      "coins": 0,
+      "alerts": 0,
+      "error": "all price sources failed"
     }
   ],
   "tv_signals": [],

@@ -73,7 +73,7 @@ a{color:#8ab4f8}
 <h3>🏆 Signal Performance (Last 30 days)</h3>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
 <div>Signals: <b>{{perf_total}}</b><br>Win Rate: <b style="color:{{perf_color}}">{{perf_winrate}}%</b> {{perf_emoji}}<br>Wins/Loss: {{perf_wins}} W / {{perf_losses}} L</div>
-<div>Best: <b>{{perf_best}}</b> ({{perf_best_wr}}%)<br>Worst: <b>{{perf_worst}}</b> ({{perf_worst_wr}}%)<br>TP1: {{perf_tp1}}% TP2: {{perf_tp2}}% TP3: {{perf_tp3}}% SL: {{perf_sl}}%</div>
+<div>Best: <b>{{perf_best}}</b> ({{perf_best_wr}}%)<br>Worst: <b>{{perf_worst}}</b> ({{perf_worst_wr}}%)<br>TP1: {{perf_tp1}} TP2: {{perf_tp2}} TP3: {{perf_tp3}} SL: {{perf_sl}}<br>{{perf_extra}}</div>
 </div>
 <div class="small" style="margin-top:8px">Winrate from Pine v2 Smart Panel + TV webhook history. Resets on TradingView timeframe change (Pine var limitation). By-coin counts from <code>state.json:performance.by_coin</code></div>
 </div>
@@ -250,10 +250,14 @@ def generate_dashboard(config, state, prices, signals, news_items, onchain_event
         best, best_wr = sorted_coins[0][0], min(71, 55+sorted_coins[0][1]*2)  # demo calc
         if len(sorted_coins)>1:
             worst, worst_wr = sorted_coins[-1][0], max(38, 45 - sorted_coins[-1][1])
-    tp1 = perf.get("tp1", 74) if perf.get("tp1") else 74
-    tp2 = perf.get("tp2", 51) if perf.get("tp2") else 51
-    tp3 = perf.get("tp3", 29) if perf.get("tp3") else 29
-    sl = perf.get("sl", 38) if perf.get("sl") else 38
+    tp1 = perf.get("tp1", 0) or 0
+    tp2 = perf.get("tp2", 0) or 0
+    tp3 = perf.get("tp3", 0) or 0
+    sl = perf.get("sl", 0) or 0
+    be = perf.get("be", 0) or 0
+    locked = perf.get("locked", 0) or 0
+    tp1_rate = perf.get("tp1_rate", 0) or 0
+    perf_extra = f"BE: {be} Locked: {locked} TP1-rate: {tp1_rate}%"
 
     html = TEMPLATE.replace("{{last_updated}}", last_updated)\
         .replace("{{poll_interval}}", str(poll_interval))\
@@ -283,7 +287,8 @@ def generate_dashboard(config, state, prices, signals, news_items, onchain_event
         .replace("{{perf_tp1}}", str(tp1))\
         .replace("{{perf_tp2}}", str(tp2))\
         .replace("{{perf_tp3}}", str(tp3))\
-        .replace("{{perf_sl}}", str(sl))
+        .replace("{{perf_sl}}", str(sl))\
+        .replace("{{perf_extra}}", perf_extra)
 
     # ensure dashboard dir
     out = Path(out_path)

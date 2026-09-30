@@ -187,11 +187,12 @@ def tradingview_webhook():
         action_taken = f"Below threshold: {reason}"
         logger.info(f"TV alert suppressed: {reason}")
 
-    # Log to state anyway
-    update_performance(st, coin_id, data, combined, action_taken)
-    # also record run-like health?
-    # Keep-alive: update last_run
-    st.save()
+    # Log to state anyway (never let state issues 500 the webhook)
+    try:
+        update_performance(st, coin_id, data, combined, action_taken)
+        st.save()
+    except Exception as e:
+        logger.warning(f"State log fail (non-fatal): {e}")
 
     return jsonify({
         "ok": True,

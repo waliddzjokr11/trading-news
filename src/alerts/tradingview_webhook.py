@@ -30,7 +30,7 @@ TV_TICKER_MAP = {
     "OPUSDT": "optimism",
     "ARBUSDT": "arbitrum",
     "TAOUSDT": "bittensor",
-    "WLDUSDT": "worldcoin-wld",
+    "WLDUSDT": "worldcoin",
     "SANDUSDT": "the-sandbox",
     "WAVESUSDT": "waves",
     "JTOUSDT": "jito-governance-token",
@@ -46,7 +46,28 @@ TV_TICKER_MAP = {
     "ASTRUSDT": "astar",
     "DOGEUSDT": "dogecoin",
     "CROUSDT": "crypto-com-chain",
-    # add all watchlist upper symbols
+    "SUIUSDT": "sui", "SEIUSDT": "sei-network", "TIAUSDT": "celestia",
+    "APTUSDT": "aptos", "ARBUSDT": "arbitrum", "OPUSDT": "optimism",
+    "INJUSDT": "injective-protocol", "JUPUSDT": "jupiter", "PYTHUSDT": "pyth-network",
+    "LSKUSDT": "lisk", "XLMUSDT": "stellar", "HBARUSDT": "hedera-hashgraph",
+    "FETUSDT": "fetch-ai", "BCHUSDT": "bitcoin-cash", "POLUSDT": "polygon-ecosystem-token",
+    "PENGUUSDT": "pudgy-penguins", "ASTERUSDT": "aster-2", "XPLUSDT": "plasma",
+    "FFUSDT": "falcon-finance-ff", "ICPUSDT": "internet-computer", "ZROUSDT": "layerzero",
+    "ACEUSDT": "ace-data-cloud-2", "WLFIUSDT": "world-liberty-financial",
+    "CAKEUSDT": "pancakeswap-token", "EIGENUSDT": "eigenlayer", "ETHFIUSDT": "ether-fi",
+    "LDOUSDT": "lido-dao", "IOSTUSDT": "iostoken", "ZAMAUSDT": "zama",
+    "BONKUSDT": "bonk", "ALGOUSDT": "algorand", "ARKUSDT": "ark",
+    "VIRTUALUSDT": "virtual-protocol", "AEROUSDT": "aerodrome-finance",
+    "MORPHOUSDT": "morpho", "CVCUSDT": "civic", "ARUSDT": "arweave",
+    "STXUSDT": "blockstack", "ETCUSDT": "ethereum-classic", "ORDIUSDT": "ordinals",
+    "VETUSDT": "vechain", "WIFUSDT": "dogwifhat", "SHIBUSDT": "shiba-inu",
+    "PEPEUSDT": "pepe", "PUMPUSDT": "pump-fun", "TRUMPUSDT": "official-trump",
+    "ONDOUSDT": "ondo-finance", "BATUSDT": "basic-attention-token",
+    "PAXGUSDT": "pax-gold", "XAUTUSDT": "tether-gold", "LTCUSDT": "litecoin",
+    "RENDERUSDT": "render-token", "FILUSDT": "filecoin",
+    # Binance futures use 1000-prefix for low-price memes (same coin)
+    "1000PEPEUSDT": "pepe", "1000SHIBUSDT": "shiba-inu", "1000BONKUSDT": "bonk",
+    "1000FLOKIUSDT": "floki",
 }
 
 def normalize_coin(tv_coin, config_watchlist=None):
@@ -122,23 +143,20 @@ def compute_tv_combined_score(tv_signal: dict, coin_id: str, config, state_manag
     except Exception as e:
         logger.warning(f"TV news enrich fail for {coin_id}: {e}")
 
-    try:
-        events = fetch_onchain(config)
-        from src.signals.onchain_signals import evaluate_onchain as eval_oc
-        oc_res = eval_oc(events, config)
-        onchain_score = float(oc_res.get("score",0))
-        onchain_events = oc_res.get("events", [])[:2]
-    except Exception as e:
-        logger.warning(f"TV onchain enrich fail for {coin_id}: {e}")
+    # NOTE: onchain skipped on webhook — whale-alert RSS is broken and slow,
+    # and it was causing gunicorn timeouts on Render. TV + news carry the score.
+    # (Render fix: keep webhook response <10s.)
+    onchain_events = []
 
     # weights from config tradingview section or fallback
+    # (onchain skipped on webhook, so its weight is redistributed to TV/news)
     tv_cfg = config.get("tradingview", {})
     w_tv = float(tv_cfg.get("tv_signal_weight", 0.50))
     w_news = float(tv_cfg.get("news_weight_tv", 0.30))
-    w_oc = float(tv_cfg.get("onchain_weight_tv", 0.20))
-    s = w_tv + w_news + w_oc
-    if abs(s - 1.0) > 0.01 and s != 0:
-        w_tv, w_news, w_oc = w_tv/s, w_news/s, w_oc/s
+    w_oc = 0.0
+    s = w_tv + w_news
+    if s != 0:
+        w_tv, w_news = w_tv/s, w_news/s
 
     composite = tv_score * w_tv + news_score * w_news + onchain_score * w_oc
     label = composite_label(composite)
@@ -205,6 +223,30 @@ def should_alert_tv(tv_signal, combined, config, state_manager, coin_id):
     return True, f"stars {stars} label {label} {reason}"
 
 
+def _check_tv_geometry(tv_signal: dict) -> tuple[bool, str]:
+    """Sanity check: TPs must sit on the profit side of entry, SL on the risk side."""
+    try:
+        entry = float(tv_signal.get("price") or 0)
+        sl = tv_signal.get("stop_loss")
+        tp1 = tv_signal.get("tp1")
+        if not entry:
+            return False, "missing entry price"
+        sig = str(tv_signal.get("signal", "")).upper()
+        is_buy = sig in ("BUY", "STRONG_BUY", "STRONG BUY", "HIGH_QUALITY") or "MTF_BULL" in sig
+        is_sell = sig in ("SELL", "STRONG_SELL", "DOWN", "STRONG SELL", "BEAR") or "MTF_BEAR" in sig
+        if not is_buy and not is_sell:
+            return False, f"unknown signal {sig}"
+        if sl is not None and tp1 is not None:
+            sl, tp1 = float(sl), float(tp1)
+            if is_buy and not (tp1 > entry > sl):
+                return False, f"BUY geometry broken: SL {sl} / entry {entry} / TP1 {tp1}"
+            if is_sell and not (tp1 < entry < sl):
+                return False, f"SELL geometry broken: SL {sl} / entry {entry} / TP1 {tp1}"
+        return True, "geometry ok"
+    except Exception as e:
+        return False, f"geometry error: {e}"
+
+
 def should_send_tv_alert(tv_signal: dict, coin_id: str, config: dict, state: dict) -> tuple[bool, str]:
     """
     Returns (should_send, reason)
@@ -222,7 +264,12 @@ def should_send_tv_alert(tv_signal: dict, coin_id: str, config: dict, state: dic
     if tv_cfg.get("require_python_confirmation", True):
         coin_state = state.get("price_history", {}).get(coin_id, [])
         if len(coin_state) < 2:
-            return False, "Insufficient price history for confirmation"
+            # Webhook server (Render) has no shared price history — fall back to
+            # TP/SL geometry sanity check instead of hard-failing every TV alert.
+            geo_ok, geo_reason = _check_tv_geometry(tv_signal)
+            if not geo_ok:
+                return False, f"No price history; geometry check failed: {geo_reason}"
+            return True, "No price history — passed TP/SL geometry sanity check"
         latest = coin_state[-1]
         python_score = latest.get("last_price_score", 0)
         # if not stored, try to compute fresh via price_signals if history available
@@ -276,8 +323,9 @@ def update_performance(state_manager, coin_id, tv_signal, combined, action_taken
     if len(st["tv_signals"]) > 200:
         st["tv_signals"] = st["tv_signals"][-200:]
     # also ensure performance key exists
+    # NOTE: never touch wins/losses/total_signals/winrate here — those belong
+    # to closed trades only (a previous bug overwrote total_signals with TV count).
     perf = st.setdefault("performance", {"total_signals":0,"wins":0,"losses":0,"tp1":0,"tp2":0,"tp3":0,"sl":0,"by_coin":{}})
-    perf["total_signals"] = len(st["tv_signals"])
     # per-coin count
     by_coin = perf.setdefault("by_coin", {})
     by_coin[coin_id] = by_coin.get(coin_id, 0) + 1

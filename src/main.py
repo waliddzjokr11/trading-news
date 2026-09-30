@@ -547,11 +547,13 @@ def main():
         sig["volume_avg"] = avg_vol
         # For main.py signals, entry is current price; derive SL/TP from recent ATR if available (fallback to %)
         # Wider SL (ATR*2.0) + closer TPs (1R/1.6R/2.2R): tight stops were the #1 loss cause.
+        # risk floor 0.6% of entry: pure 5m-close ATR is tiny (e.g. BTC ~0.05%),
+        # which used to print TPs basically ON the entry price.
         try:
             import pandas as _pd2
             ps2 = _pd2.Series([h["price"] for h in hist] + [price], dtype=float)
             atr = ps2.diff().abs().ewm(span=14, adjust=False).mean().iloc[-1] if len(ps2) >= 14 else price * 0.02
-            risk = float(atr) * 2.0
+            risk = max(float(atr) * 2.0, float(price) * 0.006)
             if sig["signal"] in ("BULLISH","STRONG_BUY"):
                 sig["entry"] = float(price)
                 sig["stop_loss"] = float(price - risk)

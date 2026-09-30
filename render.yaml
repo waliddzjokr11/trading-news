@@ -5,7 +5,7 @@ services:
     region: frankfurt # closest to Algeria; change as needed
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 2 -b 0.0.0.0:$PORT src.webhook_server:app
+    startCommand: gunicorn -w 2 --timeout 120 --graceful-timeout 30 -b 0.0.0.0:$PORT src.webhook_server:app
     healthCheckPath: /health
     envVars:
       - key: TELEGRAM_BOT_TOKEN

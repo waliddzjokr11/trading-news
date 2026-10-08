@@ -63,6 +63,9 @@ COINGECKO_TO_BINANCE = {
     "astar": "ASTRUSDT", "dogecoin": "DOGEUSDT", "worldcoin-wld": "WLDUSDT", "worldcoin": "WLDUSDT",
     "jito-governance-token": "JTOUSDT", "jito": "JTOUSDT", "waves": "WAVESUSDT", "wavestech": "WAVESUSDT",
     "manta-network": "MANTAUSDT", "toncoin": "TONUSDT",
+    # 1000-prefixed futures for low-price meme coins
+    "pepe": "1000PEPEUSDT", "shiba-inu": "1000SHIBUSDT", "bonk": "1000BONKUSDT",
+    "floki": "1000FLOKIUSDT",
     # NOTE: TONUSDT spot is currently BREAK (halted) on Binance — kept for CoinGecko price only
     "the-open-network": "TONUSDT",  # correct symbol (was GRAMUSDT, wrong token)
     'ssv-network': 'SSVUSDT',
@@ -186,6 +189,7 @@ COINGECKO_TO_BINANCE = {
     'ethereum-name-service': 'ENSUSDT',
     'kaia': 'KAIAUSDT',
     'dogwifcoin': 'WIFUSDT',
+'dogwifhat': 'WIFUSDT',
     'doublezero': '2ZUSDT',
     'compound-governance-token': 'COMPUSDT',
     'trust-wallet-token': 'TWTUSDT',
@@ -219,11 +223,6 @@ COINGECKO_TO_BINANCE = {
     'ace-data-cloud-2': 'ACEUSDT',
     'acet-token': 'ACTUSDT',
     'aevo-exchange': 'AEVOUSDT',
-    'pepe': 'PEPEUSDT',
-    'shiba-inu': 'SHIBUSDT',
-    'floki': 'FLOKIUSDT',
-    'bonk': 'BONKUSDT',
-    'dogwifhat': 'WIFUSDT',
     'conflux-token': 'CFXUSDT',
     'stargate-finance': 'STGUSDT',
     'basic-attention-token': 'BATUSDT',

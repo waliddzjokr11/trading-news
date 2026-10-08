@@ -1303,10 +1303,10 @@
       "timestamp": "2026-10-08T17:31:53.571565+00:00",
       "coin": "binancecoin",
       "signal": "NEUTRAL",
-      "score": 0.0,
+      "score": 0.55,
       "action": "SUPPRESSED",
       "reasons": [
-        "composite 0.00 < 0.4 required"
+        "price 758.02 below EMA200 765.92"
       ],
       "tv_stars": null
     },
@@ -1369,10 +1369,10 @@
       "timestamp": "2026-10-08T17:31:53.572606+00:00",
       "coin": "cardano",
       "signal": "NEUTRAL",
-      "score": 0.0,
+      "score": 0.55,
       "action": "SUPPRESSED",
       "reasons": [
-        "composite 0.00 < 0.4 required"
+        "price 0.248931 below EMA200 0.25"
       ],
       "tv_stars": null
     },
@@ -1380,10 +1380,10 @@
       "timestamp": "2026-10-08T17:31:53.573666+00:00",
       "coin": "uniswap",
       "signal": "NEUTRAL",
-      "score": 0.0,
+      "score": 0.55,
       "action": "SUPPRESSED",
       "reasons": [
-        "composite 0.00 < 0.4 required"
+        "price 5.02 below EMA200 5.24"
       ],
       "tv_stars": null
     },
@@ -1391,16 +1391,27 @@
       "timestamp": "2026-10-08T17:31:53.573666+00:00",
       "coin": "avalanche-2",
       "signal": "NEUTRAL",
-      "score": 0.0,
+      "score": 0.55,
       "action": "SUPPRESSED",
       "reasons": [
-        "composite 0.00 < 0.4 required"
+        "price 10.64 below EMA200 10.83"
       ],
       "tv_stars": null
     },
     {
       "timestamp": "2026-10-08T17:31:53.573666+00:00",
       "coin": "sui",
+      "signal": "NEUTRAL",
+      "score": 0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 1.1 below EMA200 1.12"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-10-08T14:23:12.829229+00:00",
+      "coin": "hedera-hashgraph",
       "signal": "NEUTRAL",
       "score": 0.0,
       "action": "SUPPRESSED",
@@ -1424,10 +1435,10 @@
       "timestamp": "2026-10-08T17:31:53.574718+00:00",
       "coin": "bittensor",
       "signal": "NEUTRAL",
-      "score": 0.0,
+      "score": 0.55,
       "action": "SUPPRESSED",
       "reasons": [
-        "composite 0.00 < 0.4 required"
+        "price 281.57 below EMA200 283.89"
       ],
       "tv_stars": null
     },
@@ -1438,7 +1449,8 @@
       "score": 0.0,
       "action": "SUPPRESSED",
       "reasons": [
-        "composite 0.00 < 0.4 required"
+        "composite 0.00 < 0.4 required",
+        "price 0.00581412 below EMA200 0.01"
       ],
       "tv_stars": null
     },
@@ -1471,7 +1483,8 @@
       "score": 0.0,
       "action": "SUPPRESSED",
       "reasons": [
-        "composite 0.00 < 0.4 required"
+        "composite 0.00 < 0.4 required",
+        "price 3.13 below EMA200 3.17"
       ],
       "tv_stars": null
     },
@@ -1533,6 +1546,29 @@
     {
       "timestamp": "2026-10-08T17:31:53.577829+00:00",
       "coin": "curve-dao-token",
+      "signal": "NEUTRAL",
+      "score": 0.0,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "composite 0.00 < 0.4 required",
+        "price 0.374249 below EMA200 0.38"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-10-08T14:23:12.844977+00:00",
+      "coin": "pudgy-penguins",
+      "signal": "NEUTRAL",
+      "score": 0.55,
+      "action": "SUPPRESSED",
+      "reasons": [
+        "price 0.00852774 below EMA200 0.01"
+      ],
+      "tv_stars": null
+    },
+    {
+      "timestamp": "2026-10-08T14:23:12.845806+00:00",
+      "coin": "official-trump",
       "signal": "NEUTRAL",
       "score": 0.0,
       "action": "SUPPRESSED",

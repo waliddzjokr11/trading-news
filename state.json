@@ -110295,7 +110295,6 @@
     }
   },
   "seen_news_hashes": [
-    "16c647e882da9d16",
     "10c42acca61b1e10",
     "d4c250811c6d582e",
     "9fd16d638167db5f",
@@ -110362,8 +110361,8 @@
     "4e6fa18a899e584e",
     "793e491b93796449"
   ],
-  "last_run": "2026-10-08T14:55:58.487113+00:00",
-  "run_count": 6955,
+  "last_run": "2026-10-08T15:00:54.003273+00:00",
+  "run_count": 6956,
   "alert_history": [
     {
       "timestamp": "2026-10-08T14:17:32.419784+00:00",
@@ -115412,13 +115411,6 @@
   ],
   "run_history": [
     {
-      "timestamp": "2026-10-08T07:35:25.294244+00:00",
-      "status": "success",
-      "source": "coingecko",
-      "coins": 68,
-      "alerts": 0
-    },
-    {
       "timestamp": "2026-10-08T07:39:50.079698+00:00",
       "status": "success",
       "source": "coingecko",
@@ -116110,6 +116102,14 @@
       "source": "coingecko",
       "coins": 68,
       "alerts": 0
+    },
+    {
+      "timestamp": "2026-10-08T15:00:54.003290+00:00",
+      "status": "fail",
+      "source": "none",
+      "coins": 0,
+      "alerts": 0,
+      "error": "all price sources failed"
     }
   ],
   "tv_signals": [],
@@ -116130,10 +116130,6 @@
     "locked": 3
   },
   "seen_news_meta": {
-    "16c647e882da9d16": {
-      "timestamp": "2026-10-07T14:59:33.705447+00:00",
-      "count": 20
-    },
     "10c42acca61b1e10": {
       "timestamp": "2026-10-07T19:02:15.218224+00:00",
       "count": 27
